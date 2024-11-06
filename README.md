@@ -1,3 +1,7 @@
+# DISCLAIMER
+
+All the below content are leftovers from the original starter application created as described in the `Developing locally` point, and do not reflect the current state of development (which is still heavily in progress).
+
 # REST API Starter
 
 This is a RESTful API Starter with a single Hello World API endpoint.
