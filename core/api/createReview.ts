@@ -21,18 +21,42 @@ export const createReview = api<CreateReviewRequest, CreateReviewResponse>(
     auth: false,
   },
   async ({ projectId, fileId, t, content }) => {
-    const result = await database.one<Review>(SqlQuery, {
-      projectId,
-      fileId,
-      t,
-      content,
-    });
+    return await database.tx(async (tx) => {
+      const { exists } = await tx.one<{ exists: boolean }>(ValidationQuery, {
+        projectId,
+        fileId,
+      });
 
-    return {
-      data: result,
-    };
+      if (!exists) {
+        /**
+         * TODO: more descriptive error message
+         */
+        throw new Error("Not found");
+      }
+
+      const result = await database.one<Review>(SqlQuery, {
+        projectId,
+        fileId,
+        t,
+        content,
+      });
+
+      return {
+        data: result,
+      };
+    });
   }
 );
+
+const ValidationQuery = /*sql*/ `
+	select exists (
+		select 1
+		from	t_projects
+		join	t_files		using ( project_id )
+		where	project_id = $<projectId>
+		and		file_id = $<fileId>
+	)
+`;
 
 const SqlQuery = /*sql*/ `
 	insert into t_reviews(		
