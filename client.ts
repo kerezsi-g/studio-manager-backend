@@ -277,7 +277,7 @@ export namespace core {
         t: number
         fileId: string
         resolvedBy: string | null
-        createdAt: string
+        created: string
     }
 }
 

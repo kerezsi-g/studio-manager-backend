@@ -48,5 +48,5 @@ const SqlQuery = /*sql*/ `
 	,			t				as "t"
 	,			file_id			as "fileId"
 	,			resolved_by		as "resolvedAt"
-	,			created_at		as "createdAt"
+	,			created			as "created"
 `;
