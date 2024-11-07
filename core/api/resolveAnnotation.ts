@@ -1,24 +1,25 @@
 import { api } from "encore.dev/api";
 import { database } from "../db";
-import { Annotation } from "../types";
+import { Review } from "../types";
 
-interface ResolveAnnotationRequest {
-  itemId: string;
+interface ResolveReviewRequest {
+  reviewId: string;
+  fileId: string;
 }
 
-interface ResolveAnnotationResponse {
-  data: Annotation;
+interface ResolveReviewResponse {
+  data: Review;
 }
 
-export const resolveAnnotation = api<ResolveAnnotationRequest, ResolveAnnotationResponse>(
+export const resolveReview = api<ResolveReviewRequest, ResolveReviewResponse>(
   {
     method: "PATCH",
-    path: "/items/:itemId/annotations",
+    path: "/reviews/:reviewId",
     expose: true,
     auth: false,
   },
-  async ({ itemId }) => {
-    const result = await database.one<Annotation>(SqlQuery, { itemId });
+  async ({ reviewId, fileId }) => {
+    const result = await database.one<Review>(SqlQuery, { reviewId, fileId });
 
     return {
       data: result,
@@ -27,14 +28,14 @@ export const resolveAnnotation = api<ResolveAnnotationRequest, ResolveAnnotation
 );
 
 const SqlQuery = /*sql*/ `
-	update	t_annotations
+	update	t_reviews
 	set		resolved_at = $<fileId>
-	where	annotation_id = $<annotationId>
+	where	review_id = $<reviewId>
 	and		resolved_at is null
-	returning	annotation_id	as "annotationId"
-	,			item_id			as "itemId"
+	returning	review_id		as "reviewId"
+	,			project_id			as "projectId"
 	,			t				as "t"
-	,			created_for		as "createdFor"
-	,			resolved_at		as "resolvedAt"
+	,			file_id			as "fileId"
+	,			resolved_by		as "resolvedAt"
 	,			created_at		as "createdAt"
 `;

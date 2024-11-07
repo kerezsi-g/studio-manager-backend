@@ -13,7 +13,7 @@ export const uploadMedia = api.raw(
   {
     expose: true,
     method: "POST",
-    path: "/projects/:projectId/:itemId",
+    path: "/projects/:projectId/media",
     bodyLimit: null,
 	// auth: true
   },
@@ -65,9 +65,9 @@ export const uploadMedia = api.raw(
 );
 
 const SqlQuery = /*sql*/ `
-	insert into t_media_files(item_uuid, data)
-	values ($<item_uuid>, $<buf>)
+	insert into t_media_files(project_uuid, data)
+	values ($<project_uuid>, $<buf>)
 	returning
-		item_uuid as itemId,
+		project_uuid as projectId,
 		created
 `;

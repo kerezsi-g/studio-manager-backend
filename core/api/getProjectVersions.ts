@@ -1,27 +1,27 @@
 import { api } from "encore.dev/api";
-import { MediaFile, Asset } from "../types";
+import { MediaFile, Project } from "../types";
 import { database } from "../db";
 
-interface GetAssetVersionsRequest {
-  assetId: string;
+interface GetProjectVersionsRequest {
+  projectId: string;
 }
 
-interface GetAssetVersionsResponse {
-  //   projectId: string;
+interface GetProjectVersionsResponse {
+  //   collectionId: string;
   data: MediaFile[];
 }
 
-export const getAssetVersions = api<GetAssetVersionsRequest, GetAssetVersionsResponse>(
+export const getProjectVersions = api<GetProjectVersionsRequest, GetProjectVersionsResponse>(
   {
     method: "GET",
-    path: "/assets/:assetId/files",
+    path: "/projects/:projectId/files",
     expose: true,
     // auth: true,
   },
 
-  async ({ assetId }) => {
+  async ({ projectId }) => {
     const results = await database.manyOrNone<MediaFile>(SqlQuery, {
-		assetId,
+		projectId,
     });
 
     return {
@@ -32,10 +32,10 @@ export const getAssetVersions = api<GetAssetVersionsRequest, GetAssetVersionsRes
 
 const SqlQuery = /*sql*/ `
 	select		file_id 	as "fileId"
-	,			asset_id 	as "assetId"
+	,			project_id 	as "projectId"
 	,			created 	as "created"
 	,			remark 		as "remark"
 	from		t_files
-	where		asset_id = $<assetId>
+	where		project_id = $<projectId>
 	order by	created asc
 `;

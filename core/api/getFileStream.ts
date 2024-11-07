@@ -1,10 +1,4 @@
 import { api } from "encore.dev/api";
-import { Asset } from "../types";
-import { database } from "../db";
-
-import path from "node:path";
-import { IncomingMessage, ServerResponse } from "node:http";
-import fs from "node:fs";
 import { getFilePath } from "../utils/getFilePath";
 import { handleRangeRequest } from "../utils/handleRangeRequest";
 
@@ -13,14 +7,14 @@ interface GetFileRequest {
 }
 
 // interface GetFileResponse {
-//   projectId: string;
-//   data: Asset[];
+//   collectionId: string;
+//   data: Project[];
 // }
 
-export const getFile = api.raw(
+export const getFileStream = api.raw(
   {
     method: "GET",
-    path: "/files/:fileId",
+    path: "/media/:fileId",
     expose: true,
     // auth: true,
   },

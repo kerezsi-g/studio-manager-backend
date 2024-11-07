@@ -1,14 +1,15 @@
-export interface Project {
-  projectId: string;
-  projectName: string;
+export interface Collection {
+  collectionId: string;
+  collectionName: string;
   created: Date;
+  projectCount: number
 }
 
 type MEDIA_TYPE = "audio";
 
-export interface Asset {
-  assetId: string;
-  assetName: string;
+export interface Project {
+  projectId: string;
+  projectName: string;
   created: Date;
   mediaType: MEDIA_TYPE;
   fileCount: number;
@@ -17,18 +18,19 @@ export interface Asset {
 
 export interface MediaFile {
   fileId: string;
-  assetId: string;
+  projectId: string;
   created: Date;
   remark?: string;
 }
 
-export interface Annotation {
-  annotationId: string;
-  assetId: string;
+export interface Review {
+  reviewId: string;
+  projectId: string;
+  content: string;
   t: number;
-  createdFor: string;
-  resolvedAt: string | null;
-  createdAt: Date;
+  fileId: string;
+  resolvedBy: string | null;
+  created: Date;
 }
 
 export interface MediaFormat {

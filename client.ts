@@ -76,46 +76,22 @@ export namespace Core {
             this.baseClient = baseClient
         }
 
-        public async createAnnotation(itemId: string): Promise<api.CreateAnnotationResponse> {
+        public async createCollection(params: api.CreateCollectionRequest): Promise<api.CreateCollectionResponse> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callAPI("POST", `/items/${encodeURIComponent(itemId)}/annotations`)
-            return await resp.json() as api.CreateAnnotationResponse
+            const resp = await this.baseClient.callAPI("POST", `/collections`, JSON.stringify(params))
+            return await resp.json() as api.CreateCollectionResponse
         }
 
-        public async createAsset(projectId: string, params: api.CreateAssetRequest): Promise<api.CreateAssetResponse> {
+        public async createProject(collectionId: string, params: api.CreateProjectRequest): Promise<api.CreateProjectResponse> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callAPI("POST", `/projects/${encodeURIComponent(projectId)}/assets`, JSON.stringify(params))
-            return await resp.json() as api.CreateAssetResponse
-        }
-
-        public async createProject(params: api.CreateProjectRequest): Promise<api.CreateProjectResponse> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callAPI("POST", `/projects`, JSON.stringify(params))
+            const resp = await this.baseClient.callAPI("POST", `/collections/${encodeURIComponent(collectionId)}/projects`, JSON.stringify(params))
             return await resp.json() as api.CreateProjectResponse
         }
 
-        public async getAnnotations(assetId: string): Promise<api.GetAnnotationsResponse> {
+        public async createReview(projectId: string, params: api.CreateReviewRequest): Promise<api.CreateReviewResponse> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callAPI("GET", `/assets/${encodeURIComponent(assetId)}/annotations`)
-            return await resp.json() as api.GetAnnotationsResponse
-        }
-
-        public async getAssetDetails(assetId: string): Promise<api.GetAssetDetailsResponse> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callAPI("GET", `/assets/${encodeURIComponent(assetId)}`)
-            return await resp.json() as api.GetAssetDetailsResponse
-        }
-
-        public async getAssetVersions(assetId: string): Promise<api.GetAssetVersionsResponse> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callAPI("GET", `/assets/${encodeURIComponent(assetId)}/files`)
-            return await resp.json() as api.GetAssetVersionsResponse
-        }
-
-        public async getAssets(projectId: string): Promise<api.GetAssetsResponse> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callAPI("GET", `/projects/${encodeURIComponent(projectId)}/assets`)
-            return await resp.json() as api.GetAssetsResponse
+            const resp = await this.baseClient.callAPI("POST", `/projects/${encodeURIComponent(projectId)}/reviews`, JSON.stringify(params))
+            return await resp.json() as api.CreateReviewResponse
         }
 
         public async getAudioPeaks(fileId: string, params: api.GetAudioPeaksRequest): Promise<api.GetAudioPeakResponse> {
@@ -130,47 +106,59 @@ export namespace Core {
             return await resp.json() as api.GetAudioPeakResponse
         }
 
-        public async getFile(method: "GET", fileId: string, body?: BodyInit, options?: CallParameters): Promise<Response> {
-            return this.baseClient.callAPI(method, `/files/${encodeURIComponent(fileId)}`, body, options)
+        public async getCollections(): Promise<api.GetCollectionsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callAPI("GET", `/collections`)
+            return await resp.json() as api.GetCollectionsResponse
         }
 
-        public async getProjects(): Promise<api.GetProjectsResponse> {
+        public async getFileStream(method: "GET", fileId: string, body?: BodyInit, options?: CallParameters): Promise<Response> {
+            return this.baseClient.callAPI(method, `/media/${encodeURIComponent(fileId)}`, body, options)
+        }
+
+        public async getProjectDetails(projectId: string): Promise<api.GetProjectDetailsResponse> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callAPI("GET", `/projects`)
+            const resp = await this.baseClient.callAPI("GET", `/projects/${encodeURIComponent(projectId)}`)
+            return await resp.json() as api.GetProjectDetailsResponse
+        }
+
+        public async getProjectVersions(projectId: string): Promise<api.GetProjectVersionsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callAPI("GET", `/projects/${encodeURIComponent(projectId)}/files`)
+            return await resp.json() as api.GetProjectVersionsResponse
+        }
+
+        public async getProjects(collectionId: string): Promise<api.GetProjectsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callAPI("GET", `/collections/${encodeURIComponent(collectionId)}/projects`)
             return await resp.json() as api.GetProjectsResponse
         }
 
-        public async resolveAnnotation(itemId: string): Promise<api.ResolveAnnotationResponse> {
+        public async getReviews(projectId: string): Promise<api.GetReviewsResponse> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callAPI("PATCH", `/items/${encodeURIComponent(itemId)}/annotations`)
-            return await resp.json() as api.ResolveAnnotationResponse
+            const resp = await this.baseClient.callAPI("GET", `/projects/${encodeURIComponent(projectId)}/reviews`)
+            return await resp.json() as api.GetReviewsResponse
         }
 
-        public async uploadMedia(method: "POST", projectId: string, itemId: string, body?: BodyInit, options?: CallParameters): Promise<Response> {
-            return this.baseClient.callAPI(method, `/projects/${encodeURIComponent(projectId)}/${encodeURIComponent(itemId)}`, body, options)
+        public async resolveReview(reviewId: string, params: api.ResolveReviewRequest): Promise<api.ResolveReviewResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callAPI("PATCH", `/reviews/${encodeURIComponent(reviewId)}`, JSON.stringify(params))
+            return await resp.json() as api.ResolveReviewResponse
+        }
+
+        public async uploadMedia(method: "POST", projectId: string, body?: BodyInit, options?: CallParameters): Promise<Response> {
+            return this.baseClient.callAPI(method, `/projects/${encodeURIComponent(projectId)}/media`, body, options)
         }
     }
 }
 
 export namespace api {
-    export interface AssetDetails {
-        projectId: string
-        projectName: string
-        assetId: string
-        assetName: string
-        versions: core.MediaFile[]
+    export interface CreateCollectionRequest {
+        collectionName: string
     }
 
-    export interface CreateAnnotationResponse {
-        data: core.Annotation
-    }
-
-    export interface CreateAssetRequest {
-        assetName: string
-    }
-
-    export interface CreateAssetResponse {
-        data: core.Project
+    export interface CreateCollectionResponse {
+        data: core.Collection
     }
 
     export interface CreateProjectRequest {
@@ -178,30 +166,17 @@ export namespace api {
     }
 
     export interface CreateProjectResponse {
-        data: core.Project
+        data: core.Collection
     }
 
-    export interface GetAnnotationsResponse {
-        /**
-         * projectId: string;
-         */
-        data: core.Annotation[]
+    export interface CreateReviewRequest {
+        fileId: string
+        t: number
+        content: string
     }
 
-    export interface GetAssetDetailsResponse {
-        data: AssetDetails
-    }
-
-    export interface GetAssetVersionsResponse {
-        /**
-         * projectId: string;
-         */
-        data: core.MediaFile[]
-    }
-
-    export interface GetAssetsResponse {
-        projectId: string
-        data: core.Asset[]
+    export interface CreateReviewResponse {
+        data: core.Review
     }
 
     export interface GetAudioPeakResponse {
@@ -213,34 +188,51 @@ export namespace api {
         chunkSize?: 512 | 1024 | 2048 | 4096 | 8192
     }
 
+    export interface GetCollectionsResponse {
+        data: core.Collection[]
+    }
+
+    export interface GetProjectDetailsResponse {
+        data: ProjectDetails
+    }
+
+    export interface GetProjectVersionsResponse {
+        /**
+         * collectionId: string;
+         */
+        data: core.MediaFile[]
+    }
+
     export interface GetProjectsResponse {
+        collectionId: string
         data: core.Project[]
     }
 
-    export interface ResolveAnnotationResponse {
-        data: core.Annotation
+    export interface GetReviewsResponse {
+        /**
+         * collectionId: string;
+         */
+        data: core.Review[]
+    }
+
+    export interface ProjectDetails {
+        collectionId: string
+        collectionName: string
+        projectId: string
+        projectName: string
+        versions: core.MediaFile[]
+    }
+
+    export interface ResolveReviewRequest {
+        fileId: string
+    }
+
+    export interface ResolveReviewResponse {
+        data: core.Review
     }
 }
 
 export namespace core {
-    export interface Annotation {
-        annotationId: string
-        assetId: string
-        t: number
-        createdFor: string
-        resolvedAt: string | null
-        createdAt: string
-    }
-
-    export interface Asset {
-        assetId: string
-        assetName: string
-        created: string
-        mediaType: MEDIA_TYPE
-        fileCount: number
-        lastModified: string | null
-    }
-
     export interface AudioPeaks {
         sampleRate: number
         samplesPerPixel: number
@@ -254,11 +246,17 @@ export namespace core {
         authorization: string
     }
 
+    export interface Collection {
+        collectionId: string
+        collectionName: string
+        created: string
+    }
+
     export type MEDIA_TYPE = "audio"
 
     export interface MediaFile {
         fileId: string
-        assetId: string
+        projectId: string
         created: string
         remark?: string
     }
@@ -267,6 +265,19 @@ export namespace core {
         projectId: string
         projectName: string
         created: string
+        mediaType: MEDIA_TYPE
+        fileCount: number
+        lastModified: string | null
+    }
+
+    export interface Review {
+        reviewId: string
+        projectId: string
+        content: string
+        t: number
+        fileId: string
+        resolvedBy: string | null
+        createdAt: string
     }
 }
 

@@ -1,24 +1,28 @@
 import { api } from "encore.dev/api";
 import { database } from "../db";
-import { Project } from "../types";
+import { Collection } from "../types";
 
 interface CreateProjectRequest {
+  collectionId: string;
   projectName: string;
 }
 
 interface CreateProjectResponse {
-  data: Project;
+  data: Collection;
 }
 
 export const createProject = api<CreateProjectRequest, CreateProjectResponse>(
   {
     method: "POST",
-    path: "/projects",
+    path: "/collections/:collectionId/projects",
     expose: true,
     // auth: true,
   },
-  async ({ projectName }) => {
-    const result = await database.one<Project>(SqlQuery, { projectName });
+  async ({ collectionId, projectName }) => {
+    const result = await database.one<Collection>(SqlQuery, {
+      collectionId,
+      projectName,
+    });
 
     return {
       data: result,
@@ -27,9 +31,10 @@ export const createProject = api<CreateProjectRequest, CreateProjectResponse>(
 );
 
 const SqlQuery = /*sql*/ `
-	insert into t_projects(project_name)
-	values ($<projectName>)
-	returning	project_id		as	"projectId"
-	,			project_name	as	"projectName"
-	,			created			as	"created"
+	insert into t_projects(project_name, collection_uuid)
+	values ($<projectName>, $<collectionId>)
+	returning
+		collection_id		as	"collectionId",
+		project_id			as	"projectId",
+		project_name		as	"projectName"
 `;

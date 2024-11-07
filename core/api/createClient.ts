@@ -8,16 +8,16 @@
 
 // interface Response {
 //   data: {
-//     projectId: string;
-//     projectName: string;
+//     collectionId: string;
+//     collectionName: string;
 //     lastModified: Date;
 //   }[];
 // }
 
-// export const createProject = api<{}, Response>(
+// export const createCollection = api<{}, Response>(
 //   {
 //     method: "POST",
-//     path: "/projects",
+//     path: "/collections",
 //     expose: true,
 //     auth: false,
 //   },
@@ -25,8 +25,8 @@
 //     return {
 //       data: [
 //         {
-//           projectId: "test-project",
-//           projectName: "Test Project",
+//           collectionId: "test-collection",
+//           collectionName: "Test Collection",
 //           lastModified: new Date(),
 //         },
 //       ],
@@ -35,5 +35,5 @@
 // );
 
 // const SqlQuery = /*sql*/ `
-// 	insert into t_projects(project_name, client_uuid)
+// 	insert into t_collections(collection_name, client_uuid)
 // `;
