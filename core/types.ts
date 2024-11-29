@@ -2,7 +2,7 @@ export interface Collection {
   collectionId: string;
   collectionName: string;
   created: Date;
-  projectCount: number
+  projectCount: number;
 }
 
 type MEDIA_TYPE = "audio";
@@ -24,6 +24,7 @@ export interface MediaFile {
 }
 
 export interface Review {
+  userId: string;
   reviewId: string;
   projectId: string;
   content: string;
@@ -45,4 +46,9 @@ export interface AudioPeaks {
   length: number;
   peaks: number[][];
   channels: number;
+}
+
+export interface UserData {
+  userId: string;
+  email: string;
 }

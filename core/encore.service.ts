@@ -1,4 +1,7 @@
 import { Service } from "encore.dev/service";
+// import { secret } from "encore.dev/config";
+
+// const jwtSecret = secret('JWT_SECRET')
 
 // Encore will consider this directory and all its subdirectories as part of the "hello" service.
 // https://encore.dev/docs/ts/primitives/services

@@ -1,5 +1,6 @@
-import { Header, Gateway, Query } from "encore.dev/api";
+import { Header, Gateway } from "encore.dev/api";
 import { authHandler } from "encore.dev/auth";
+import { verifyToken } from "./utils/auth-tools";
 
 // AuthParams specifies the incoming request information
 // the auth handler is interested in. In this case it only
@@ -17,8 +18,11 @@ interface AuthData {
 
 // The auth handler itself.
 export const auth = authHandler<AuthParams, AuthData>(async (params) => {
-  // TODO: Implement
-  return { userID: "test-user-id" };
+  const token = params.authorization;
+
+  const decoded = verifyToken(token);
+
+  return { userID: decoded.sub! };
 });
 
 // Define the API Gateway that will execute the auth handler:

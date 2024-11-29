@@ -1,6 +1,7 @@
 import { api } from "encore.dev/api";
 import { Review, MediaFile } from "../types";
-import { database } from "../db";
+import { database } from "../../admin/db";
+import { getAuthData } from "~encore/auth";
 
 interface GetProjectDetailsRequest {
   projectId: string;
@@ -26,10 +27,13 @@ export const getProjectDetails = api<
     method: "GET",
     path: "/projects/:projectId",
     expose: true,
-    // auth: true,
+    auth: true,
   },
   async ({ projectId }) => {
-    const result = await database.one<ProjectDetails>(SqlQuery, { projectId });
+
+	const { userID } = getAuthData()!;
+
+    const result = await database.one<ProjectDetails>(SqlQuery, { projectId, userID });
 
     return {
       data: result,
@@ -39,8 +43,8 @@ export const getProjectDetails = api<
 
 const SqlQuery = /*sql*/ `
 	select		p.collection_id						as "collectionId"
-	,			p.collection_name						as "collectionName"
-	,			a.project_id							as "projectId"
+	,			p.collection_name					as "collectionName"
+	,			a.project_id						as "projectId"
 	,			a.project_name						as "projectName"
 	,			a.media_type						as "mediaType"
 	,			a.created							as "created"
@@ -52,8 +56,9 @@ const SqlQuery = /*sql*/ `
 					) order by f.created desc
 				) 									as "versions"
 	from		t_collections		p
-	join		t_projects		a	using ( collection_id )
-	join		t_files			f	using ( project_id )
+	join		v_user_projects		a	using ( collection_id )
+	join		t_files				f	using ( project_id )
 	where		project_id = $<projectId>
-	group by	p.collection_id, a.project_id
+	and			a.user_id = $<userID>
+	group by	p.collection_id, a.project_id, a.project_name, a.media_type, a.created
 `;

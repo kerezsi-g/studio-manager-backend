@@ -1,6 +1,7 @@
 import { api } from "encore.dev/api";
-import { database } from "../db";
+import { database } from "../../admin/db";
 import { Review } from "../types";
+import { getAuthData } from "~encore/auth";
 
 interface CreateReviewRequest {
   projectId: string;
@@ -18,13 +19,16 @@ export const createReview = api<CreateReviewRequest, CreateReviewResponse>(
     method: "POST",
     path: "/projects/:projectId/reviews",
     expose: true,
-    auth: false,
+    auth: true,
   },
   async ({ projectId, fileId, t, content }) => {
+    const { userID } = getAuthData()!;
+
     return await database.tx(async (tx) => {
       const { exists } = await tx.one<{ exists: boolean }>(ValidationQuery, {
         projectId,
         fileId,
+        userID,
       });
 
       if (!exists) {
@@ -39,6 +43,7 @@ export const createReview = api<CreateReviewRequest, CreateReviewResponse>(
         fileId,
         t,
         content,
+        userID,
       });
 
       return {
@@ -51,22 +56,25 @@ export const createReview = api<CreateReviewRequest, CreateReviewResponse>(
 const ValidationQuery = /*sql*/ `
 	select exists (
 		select 1
-		from	t_projects
-		join	t_files		using ( project_id )
-		where	project_id = $<projectId>
+		from	v_user_projects	p
+		join	t_files			f using ( project_id )		
+		where	project_id = $<projectId>		
 		and		file_id = $<fileId>
+		and		user_id = $<userID>
 	)
 `;
 
 const SqlQuery = /*sql*/ `
-	insert into t_reviews(		
-		project_id
+	insert into t_reviews(
+		user_id
+	,	project_id
 	,	t
 	,	file_id
 	,	content
 	)
-	values ($<projectId>, $<t>, $<fileId>, $<content>)
-	returning	review_id		as "reviewId"
+	values ($<userID>, $<projectId>, $<t>, $<fileId>, $<content>)
+	returning	user_id			as "userId"
+	,			review_id		as "reviewId"
 	,			project_id		as "projectId"
 	,			content			as "content"
 	,			t				as "t"

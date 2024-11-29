@@ -1,7 +1,20 @@
+create table t_users (
+	user_id uuid primary key default gen_random_uuid(),
+	email text not null unique,
+	password text not null
+);
+
 create table t_collections(
 	collection_id uuid primary key default gen_random_uuid(),
 	collection_name text not null,
 	created timestamptz not null default current_timestamp
+);
+
+create table t_collection_members(
+	user_id uuid not null references t_users(user_id),
+	collection_id uuid not null references t_collections(collection_id),
+	added timestamptz not null default current_timestamp,
+	primary key (user_id, collection_id)
 );
 
 create table t_media_types(media_type text primary key);
@@ -24,12 +37,20 @@ create table t_files(
 
 create table t_reviews(
 	review_id uuid primary key default gen_random_uuid(),
+	user_id uuid not null references t_users(user_id),
 	content text not null,
-	t int4 not null,	
+	t int4 not null,
 	project_id uuid not null references t_projects(project_id),
 	file_id uuid not null references t_files(file_id),
 	resolved_by uuid references t_files(file_id),
 	created timestamptz not null default current_timestamp
+);
+
+create table t_notification_log(
+	log_id serial primary key, --probably no advantage for having this as a uuid
+	file_id uuid not null references t_files(file_id),
+	email text not null references t_users(email),
+	sent timestamptz not null
 );
 
 create table t_formats(
@@ -45,6 +66,31 @@ create table t_formats(
 -- ,	data			bytea not null
 -- 	primary key (file_id, format)
 -- )
+
+
+-- ? =================================================================
+-- ? 	Create test users
+-- ? =================================================================
+insert into t_users(user_id, email, password)
+values
+	-- passowrd hash equals to 'test'
+	(
+		'cdbdedbf-89b0-44fd-92c9-ab0b502da4fd',
+		'test1',
+		'$2a$12$Uq8fkZVAb5y5ZC1FShAKjOFp4R3Ho5cGCwdMufKSvlq2ZywPzME4C'
+	),
+	(
+		'cdbdedbf-89b0-44fd-92c9-ab0b502da4fe',
+		'test2',
+		'$2a$12$Uq8fkZVAb5y5ZC1FShAKjOFp4R3Ho5cGCwdMufKSvlq2ZywPzME4C'
+	),
+	(
+		'cdbdedbf-89b0-44fd-92c9-ab0b502da4ff',
+		'test3',
+		'$2a$12$Uq8fkZVAb5y5ZC1FShAKjOFp4R3Ho5cGCwdMufKSvlq2ZywPzME4C'
+	);
+
+
 insert into
 	t_media_types(media_type)
 values
@@ -58,17 +104,25 @@ values
 		'00000000-0000-0000-0000-000000000000'
 	);
 
-/* 
+
 insert into
-	t_collections(collection_name)
+	t_collection_members(collection_id, user_id)
 values
-	('Test Collection 2'),
-	('Test Collection 3');
- */
+	(		
+		'00000000-0000-0000-0000-000000000000',
+		'cdbdedbf-89b0-44fd-92c9-ab0b502da4fd'
+	),
+	(
+		'00000000-0000-0000-0000-000000000000',
+		'cdbdedbf-89b0-44fd-92c9-ab0b502da4fe'
+	),
+	(
+		'00000000-0000-0000-0000-000000000000',
+		'cdbdedbf-89b0-44fd-92c9-ab0b502da4ff'
+	);
 
 
-insert into
-	t_projects(project_id, collection_id, project_name, media_type)
+insert into t_projects(project_id, collection_id, project_name,	media_type)
 values
 	(
 		'66919f81-7c51-4d4a-80b7-95a73d750c53',
@@ -96,13 +150,13 @@ values
 		'c34a042b-ba1f-4c10-b553-07093c7a2e38',
 		'66919f81-7c51-4d4a-80b7-95a73d750c53',
 		'files/CantinaBand60.wav',
-		current_timestamp - '2 day'::interval
+		current_timestamp - '2 day' :: interval
 	),
 	(
 		'c34a042b-ba1f-4c10-b553-07093c7a2e39',
 		'66919f81-7c51-4d4a-80b7-95a73d750c53',
 		'files/CantinaBand60.wav',
-		current_timestamp - '1 day'::interval
+		current_timestamp - '1 day' :: interval
 	),
 	(
 		'0da4f456-49e3-4238-a4aa-e842aa217f68',
@@ -117,27 +171,28 @@ values
 		current_timestamp
 	);
 
-insert into t_reviews(project_id, file_id, t, content, resolved_by, created)
+insert into t_reviews(user_id, project_id, file_id, t, content, resolved_by, created)
 values
 	(
+		'cdbdedbf-89b0-44fd-92c9-ab0b502da4fd',
 		'66919f81-7c51-4d4a-80b7-95a73d750c53',
 		'c34a042b-ba1f-4c10-b553-07093c7a2e38',
 		15,
 		'This is a test review, marked as resolved by version 2',
 		'c34a042b-ba1f-4c10-b553-07093c7a2e39',
-		current_timestamp - '36 hours'::interval
+		current_timestamp - '36 hours' :: interval
 	),
 	(
+		'cdbdedbf-89b0-44fd-92c9-ab0b502da4fd',
 		'66919f81-7c51-4d4a-80b7-95a73d750c53',
 		'c34a042b-ba1f-4c10-b553-07093c7a2e39',
 		32,
-		'This is a test review, not yet resolved',		
+		'This is a test review, not yet resolved',
 		null,
-		current_timestamp - '12 hours'::interval
+		current_timestamp - '12 hours' :: interval
 	);
 
-insert into
-	t_formats(format, media_type, name, cmd)
+insert into t_formats(format, media_type, name, cmd)
 values
 	(
 		'mp3_v0',
@@ -163,3 +218,19 @@ values
 		'FLAC',
 		'flac $input -o $output'
 	);
+
+create view v_user_projects as (
+	select		user_id
+	,			p.*
+	from		t_users					usr 
+	join		t_collection_members	cm	using ( user_id )
+	join		t_projects				p	using ( collection_id )
+);
+
+create view v_user_collections as (
+	select		user_id
+	,			c.*
+	from		t_users					usr 
+	join		t_collection_members	cm	using ( user_id )
+	join		t_collections			c	using ( collection_id )
+);

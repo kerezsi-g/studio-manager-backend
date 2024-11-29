@@ -1,6 +1,7 @@
 import { api } from "encore.dev/api";
-import { Review, } from "../types";
-import { database } from "../db";
+import { Review } from "../types";
+import { database } from "../../admin/db";
+import { getAuthData } from "~encore/auth";
 
 interface GetReviewsRequest {
   projectId: string;
@@ -16,12 +17,15 @@ export const getReviews = api<GetReviewsRequest, GetReviewsResponse>(
     method: "GET",
     path: "/projects/:projectId/reviews",
     expose: true,
-    // auth: true,
+    auth: true,
   },
 
   async ({ projectId }) => {
+    const { userID } = getAuthData()!;
+
     const results = await database.manyOrNone<Review>(SqlQuery, {
-		projectId,
+      projectId,
+      userID,
     });
 
     return {
@@ -31,14 +35,17 @@ export const getReviews = api<GetReviewsRequest, GetReviewsResponse>(
 );
 
 const SqlQuery = /*sql*/ `
-	select		review_id		as "reviewId"
-	,			project_id		as "projectId"
-	,			t				as "t"
-	,			content			as "content"
-	,			file_id			as "createdFor"
-	,			resolved_by		as "resolvedBy"
-	,			created			as "created"
-	from		t_reviews
+	select		r.user_id			as "userId"
+	,			r.review_id			as "reviewId"
+	,			r.project_id		as "projectId"
+	,			r.t					as "t"
+	,			r.content			as "content"
+	,			r.file_id			as "createdFor"
+	,			r.resolved_by		as "resolvedBy"
+	,			r.created			as "created"
+	from		v_user_projects usr
+	join		t_reviews		r using ( project_id )
 	where		project_id = $<projectId>
+	and			usr.user_id = $<userID>
 	order by	t asc
 `;

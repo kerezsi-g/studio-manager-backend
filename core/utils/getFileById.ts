@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
-import { getFilePath } from "./getFilePath";
+import { getFilePath } from "../api/getFilePath";
 
 export async function getAudioFile(fileId: string): Promise<Buffer> {
-  const path = await getFilePath(fileId);
+  const { path } = await getFilePath({ fileId });
 
   const file = await fs.readFile(path);
 

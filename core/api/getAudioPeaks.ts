@@ -1,9 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { api, Query } from "encore.dev/api";
 
-import { getFilePath } from "../utils/getFilePath";
 import { generatePeaks } from "../utils/generatePeaks";
 import { AudioPeaks } from "../types";
+import { getFilePath } from "./getFilePath";
 
 interface GetAudioPeaksRequest {
   fileId: string;
@@ -20,12 +20,12 @@ export const getAudioPeaks = api<GetAudioPeaksRequest, GetAudioPeakResponse>(
     method: "GET",
     path: "/files/:fileId/metadata",
     expose: true,
-    // auth: true,
+    auth: true,
   },
   async ({ fileId, bits = 8, chunkSize = 4096 }) => {
-    const filePath = await getFilePath(fileId);
+    const { path } = await getFilePath({ fileId });
 
-    const file = await readFile(filePath);
+    const file = await readFile(path);
 
     const results = await generatePeaks(file, { bits, chunkSize });
 

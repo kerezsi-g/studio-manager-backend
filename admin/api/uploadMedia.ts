@@ -15,7 +15,7 @@ export const uploadMedia = api.raw(
     method: "POST",
     path: "/projects/:projectId/media",
     bodyLimit: null,
-	// auth: true
+    auth: true,
   },
   async (req, res) => {
     const bb = busboy({

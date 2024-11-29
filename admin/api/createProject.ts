@@ -1,6 +1,6 @@
 import { api } from "encore.dev/api";
 import { database } from "../db";
-import { Collection } from "../types";
+import { Collection } from "../../core/types";
 
 interface CreateProjectRequest {
   collectionId: string;
@@ -16,7 +16,7 @@ export const createProject = api<CreateProjectRequest, CreateProjectResponse>(
     method: "POST",
     path: "/collections/:collectionId/projects",
     expose: true,
-    // auth: true,
+    auth: true,
   },
   async ({ collectionId, projectName }) => {
     const result = await database.one<Collection>(SqlQuery, {
