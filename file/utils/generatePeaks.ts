@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import { AudioPeaks } from "../types";
+import { AudioPeaks } from "../../types";
 // import { Peaks } from "../schemas/Peaks.schema";
 
 interface AUDIOWAVEFORM_OUTPUT {

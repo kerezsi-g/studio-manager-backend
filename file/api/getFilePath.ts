@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { api, Query } from "encore.dev/api";
 
 import { generatePeaks } from "../utils/generatePeaks";
-import { AudioPeaks } from "../types";
+import { AudioPeaks } from "../../types";
 import { database } from "../../admin/db";
 import { getAuthData } from "~encore/auth";
 

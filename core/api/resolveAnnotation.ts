@@ -1,6 +1,6 @@
 import { api } from "encore.dev/api";
 import { database } from "../../admin/db";
-import { Review } from "../types";
+import { Review } from "../../types";
 import { getAuthData } from "~encore/auth";
 
 interface ResolveReviewRequest {

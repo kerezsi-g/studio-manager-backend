@@ -17,7 +17,7 @@ interface AuthData {
 }
 
 // The auth handler itself.
-export const auth = authHandler<AuthParams, AuthData>(async (params) => {
+export const jwtAuthHandler = authHandler<AuthParams, AuthData>(async (params) => {
   const token = params.authorization;
 
   const decoded = verifyToken(token);
@@ -27,5 +27,5 @@ export const auth = authHandler<AuthParams, AuthData>(async (params) => {
 
 // Define the API Gateway that will execute the auth handler:
 export const gateway = new Gateway({
-  authHandler: auth,
+  authHandler: jwtAuthHandler,
 });

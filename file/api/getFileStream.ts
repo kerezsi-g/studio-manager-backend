@@ -1,7 +1,7 @@
 import { api } from "encore.dev/api";
 import { IncomingMessage, ServerResponse } from "node:http";
 import fs from "node:fs";
-import { getAuthData } from "~encore/auth";
+// import { getAuthData } from "~encore/auth";
 import { getFilePath } from "./getFilePath";
 
 interface GetFileRequest {

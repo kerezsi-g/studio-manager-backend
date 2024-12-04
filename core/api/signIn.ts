@@ -1,5 +1,5 @@
 import { api, APIError, Header } from "encore.dev/api";
-import { UserData } from "../types";
+import { UserData } from "../../types";
 import { database } from "../../admin/db";
 
 import { compareSync } from "bcrypt-ts";

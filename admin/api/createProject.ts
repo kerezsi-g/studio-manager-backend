@@ -1,6 +1,6 @@
 import { api } from "encore.dev/api";
 import { database } from "../db";
-import { Collection } from "../../core/types";
+import { Collection } from "../../types";
 
 interface CreateProjectRequest {
   collectionId: string;

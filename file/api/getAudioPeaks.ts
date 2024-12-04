@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { api, Query } from "encore.dev/api";
 
 import { generatePeaks } from "../utils/generatePeaks";
-import { AudioPeaks } from "../types";
+import { AudioPeaks } from "../../types";
 import { getFilePath } from "./getFilePath";
 
 interface GetAudioPeaksRequest {

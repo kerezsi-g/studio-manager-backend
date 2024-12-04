@@ -1,5 +1,5 @@
 import { api } from "encore.dev/api";
-import { Project } from "../types";
+import { Project } from "../../types";
 import { database } from "../../admin/db";
 import { getAuthData } from "~encore/auth";
 

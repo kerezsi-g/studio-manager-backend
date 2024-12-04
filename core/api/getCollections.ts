@@ -1,6 +1,6 @@
 import { api } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
-import { Collection } from "../types";
+import { Collection } from "../../types";
 import { database } from "../../admin/db";
 
 interface GetCollectionsResponse {
