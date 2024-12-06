@@ -1,8 +1,9 @@
-import { api } from "encore.dev/api";
+import { api, APIError } from "encore.dev/api";
 import { IncomingMessage, ServerResponse } from "node:http";
 import fs from "node:fs";
 // import { getAuthData } from "~encore/auth";
 import { getFilePath } from "./getFilePath";
+import { getFilePathByToken } from "../utils/fileAccessTokenStore";
 
 interface GetFileRequest {
   fileId: string;
@@ -16,7 +17,7 @@ interface GetFileRequest {
 export const getFileStream = api.raw(
   {
     method: "GET",
-    path: "/media/:fileId",
+    path: "/media/:accessToken",
     expose: true,
     auth: false,
   },
@@ -27,9 +28,13 @@ export const getFileStream = api.raw(
     const pathname = parsedUrl.pathname; // e.g., '/files/12345'
     const pathSegments = pathname.split("/");
 
-    const fileId = pathSegments[pathSegments.length - 1]; // Assuming the fileId is the last segment
+    const accessToken = pathSegments[pathSegments.length - 1]; // Assuming the access token is the last segment
 
-    const { path } = await getFilePath({ fileId });
+    const path = getFilePathByToken(accessToken);
+
+    if (!path) {
+      throw APIError.notFound("Invalid access token");
+    }
 
     handleRangeRequest(path, request, response);
   }
@@ -46,8 +51,11 @@ function handleRangeRequest(
   response: ServerResponse
 ) {
   const fileSize = fs.statSync(filePath).size;
+
   const rangeHeader = request.headers["range"];
+
   const range = parseRangeHeader(rangeHeader, fileSize);
+
   const { start, end } = range || { start: 0, end: fileSize - 1 };
 
   const stream = fs.createReadStream(filePath, { start, end });

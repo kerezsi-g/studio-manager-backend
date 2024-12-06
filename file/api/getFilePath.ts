@@ -19,7 +19,7 @@ export const getFilePath = api<GetFilePathRequest, GetFilePathResponse>(
     method: "GET",
     path: "/files/:fileId/path",
     expose: false,
-    auth: false,
+    auth: true,
   },
   async ({ fileId }) => {
     const auth = getAuthData();

@@ -32,6 +32,7 @@ export function PreviewEnv(pr: number | string): BaseURL {
 export default class Client {
     public readonly Admin: Admin.ServiceClient
     public readonly Core: Core.ServiceClient
+    public readonly File: File.ServiceClient
 
 
     /**
@@ -44,6 +45,7 @@ export default class Client {
         const base = new BaseClient(target, options ?? {})
         this.Admin = new Admin.ServiceClient(base)
         this.Core = new Core.ServiceClient(base)
+        this.File = new File.ServiceClient(base)
     }
 }
 
@@ -117,26 +119,10 @@ export namespace Core {
             return await resp.json() as api.CreateReviewResponse
         }
 
-        public async getAudioPeaks(fileId: string, params: api.GetAudioPeaksRequest): Promise<api.GetAudioPeakResponse> {
-            // Convert our params into the objects we need for the request
-            const query = makeRecord<string, string | string[]>({
-                bits:      params.bits === undefined ? undefined : String(params.bits),
-                chunkSize: params.chunkSize === undefined ? undefined : String(params.chunkSize),
-            })
-
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callAPI("GET", `/files/${encodeURIComponent(fileId)}/metadata`, undefined, {query})
-            return await resp.json() as api.GetAudioPeakResponse
-        }
-
         public async getCollections(): Promise<api.GetCollectionsResponse> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callAPI("GET", `/collections`)
             return await resp.json() as api.GetCollectionsResponse
-        }
-
-        public async getFileStream(method: "GET", fileId: string, body?: BodyInit, options?: CallParameters): Promise<Response> {
-            return this.baseClient.callAPI(method, `/media/${encodeURIComponent(fileId)}`, body, options)
         }
 
         public async getProjectDetails(projectId: string): Promise<api.GetProjectDetailsResponse> {
@@ -177,9 +163,42 @@ export namespace Core {
     }
 }
 
+export namespace File {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+        }
+
+        public async getAudioPeaks(fileId: string, params: api.GetAudioPeaksRequest): Promise<api.GetAudioPeakResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                bits:      params.bits === undefined ? undefined : String(params.bits),
+                chunkSize: params.chunkSize === undefined ? undefined : String(params.chunkSize),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callAPI("GET", `/files/${encodeURIComponent(fileId)}/metadata`, undefined, {query})
+            return await resp.json() as api.GetAudioPeakResponse
+        }
+
+        public async getFileAccessToken(fileId: string): Promise<api.GetFileAccessTokenResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callAPI("GET", `/files/${encodeURIComponent(fileId)}/token`)
+            return await resp.json() as api.GetFileAccessTokenResponse
+        }
+
+        public async getFileStream(method: "GET", accessToken: string, body?: BodyInit, options?: CallParameters): Promise<Response> {
+            return this.baseClient.callAPI(method, `/media/${encodeURIComponent(accessToken)}`, body, options)
+        }
+    }
+}
+
 export namespace api {
     export interface CheckIdentityResponse {
-        data: core.UserData
+        data: types.UserData
         token: string
     }
 
@@ -188,7 +207,7 @@ export namespace api {
     }
 
     export interface CreateCollectionResponse {
-        data: core.Collection
+        data: types.Collection
     }
 
     export interface CreateProjectRequest {
@@ -196,7 +215,7 @@ export namespace api {
     }
 
     export interface CreateProjectResponse {
-        data: core.Collection
+        data: types.Collection
     }
 
     export interface CreateReviewRequest {
@@ -206,11 +225,11 @@ export namespace api {
     }
 
     export interface CreateReviewResponse {
-        data: core.Review
+        data: types.Review
     }
 
     export interface GetAudioPeakResponse {
-        data: core.AudioPeaks
+        data: types.AudioPeaks
     }
 
     export interface GetAudioPeaksRequest {
@@ -219,7 +238,11 @@ export namespace api {
     }
 
     export interface GetCollectionsResponse {
-        data: core.Collection[]
+        data: types.Collection[]
+    }
+
+    export interface GetFileAccessTokenResponse {
+        token: string
     }
 
     export interface GetProjectDetailsResponse {
@@ -230,20 +253,20 @@ export namespace api {
         /**
          * collectionId: string;
          */
-        data: core.MediaFile[]
+        data: types.MediaFile[]
     }
 
     export interface GetProjectsResponse {
         collectionId: string
         collectionName: string
-        data: core.Project[]
+        data: types.Project[]
     }
 
     export interface GetReviewsResponse {
         /**
          * collectionId: string;
          */
-        data: core.Review[]
+        data: types.Review[]
     }
 
     export interface ProjectDetails {
@@ -251,7 +274,7 @@ export namespace api {
         collectionName: string
         projectId: string
         projectName: string
-        versions: core.MediaFile[]
+        versions: types.MediaFile[]
     }
 
     export interface ResolveReviewRequest {
@@ -259,7 +282,7 @@ export namespace api {
     }
 
     export interface ResolveReviewResponse {
-        data: core.Review
+        data: types.Review
     }
 
     export interface SignInRequest {
@@ -271,13 +294,19 @@ export namespace api {
         /**
          * collectionId: string;
          */
-        data: core.UserData
+        data: types.UserData
 
         token: string
     }
 }
 
 export namespace core {
+    export interface AuthParams {
+        authorization: string
+    }
+}
+
+export namespace types {
     export interface AudioPeaks {
         sampleRate: number
         samplesPerPixel: number
@@ -285,10 +314,6 @@ export namespace core {
         length: number
         peaks: number[][]
         channels: number
-    }
-
-    export interface AuthParams {
-        authorization: string
     }
 
     export interface Collection {
