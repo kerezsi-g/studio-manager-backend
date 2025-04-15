@@ -56,6 +56,77 @@
         ],
         "title": "Project"
       },
+      "ProjectMedia": {
+        "type": "object",
+        "properties": {
+          "sha256": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "string"
+          },
+          "addedAt": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sha256",
+          "contentType",
+          "fileName",
+          "path",
+          "tag",
+          "addedAt"
+        ],
+        "title": "ProjectMedia"
+      },
+      "Issue": {
+        "type": "object",
+        "properties": {
+          "issueId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "timestamp": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "duration": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "integer"
+          },
+          "resolvedAt": {
+            "nullable": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "issueId",
+          "userId",
+          "description",
+          "timestamp",
+          "duration",
+          "createdAt",
+          "resolvedAt"
+        ],
+        "title": "Issue"
+      },
       "ProjectDetails": {
         "type": "object",
         "properties": {
@@ -74,66 +145,13 @@
           "files": {
             "type": "array",
             "items": {
-              "type": "object",
-              "properties": {
-                "fileId": {
-                  "type": "string"
-                },
-                "fileName": {
-                  "type": "string"
-                },
-                "category": {
-                  "type": "string"
-                },
-                "createdAt": {
-                  "type": "integer"
-                }
-              },
-              "required": [
-                "fileId",
-                "fileName",
-                "category",
-                "createdAt"
-              ]
+              "$ref": "#/components/schemas/ProjectMedia"
             }
           },
           "issues": {
             "type": "array",
             "items": {
-              "type": "object",
-              "properties": {
-                "issueId": {
-                  "type": "string"
-                },
-                "userId": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
-                },
-                "timestamp": {
-                  "type": "integer"
-                },
-                "duration": {
-                  "type": "integer"
-                },
-                "createdAt": {
-                  "type": "integer"
-                },
-                "resolvedAt": {
-                  "type": "integer"
-                }
-              },
-              "required": [
-                "issueId",
-                "userId",
-                "description",
-                "timestamp",
-                "duration",
-                "createdAt",
-                "resolvedAt"
-              ],
-              "title": "Issue"
+              "$ref": "#/components/schemas/Issue"
             }
           }
         },
@@ -146,42 +164,6 @@
           "issues"
         ],
         "title": "ProjectDetails"
-      },
-      "Issue": {
-        "type": "object",
-        "properties": {
-          "issueId": {
-            "type": "string"
-          },
-          "userId": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "timestamp": {
-            "type": "integer"
-          },
-          "duration": {
-            "type": "integer"
-          },
-          "createdAt": {
-            "type": "integer"
-          },
-          "resolvedAt": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "issueId",
-          "userId",
-          "description",
-          "timestamp",
-          "duration",
-          "createdAt",
-          "resolvedAt"
-        ],
-        "title": "Issue"
       },
       "Collection": {
         "type": "object",
@@ -658,7 +640,7 @@
         }
       }
     },
-    "/projects/{projectId}/files/{fileId}": {
+    "/projects/{projectId}/files/{sha256}": {
       "put": {
         "operationId": "addFileToProject",
         "summary": "addFileToProject",
@@ -671,7 +653,23 @@
               "type": "string"
             },
             "in": "query",
-            "name": "category",
+            "name": "tag",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "path",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "fileName",
             "required": true
           },
           {
@@ -687,7 +685,7 @@
               "type": "string"
             },
             "in": "path",
-            "name": "fileId",
+            "name": "sha256",
             "required": true
           }
         ],
@@ -724,7 +722,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "category",
+            "name": "tag",
             "required": true
           },
           {
@@ -740,7 +738,7 @@
               "type": "string"
             },
             "in": "path",
-            "name": "fileId",
+            "name": "sha256",
             "required": true
           }
         ],
@@ -898,7 +896,7 @@
         }
       }
     },
-    "/files/{fileId}": {
+    "/files/{sha256}": {
       "get": {
         "operationId": "getAccessUrl",
         "summary": "getAccessUrl",
@@ -911,7 +909,7 @@
               "type": "string"
             },
             "in": "path",
-            "name": "fileId",
+            "name": "sha256",
             "required": true
           }
         ],
@@ -936,6 +934,59 @@
           }
         }
       },
+      "put": {
+        "operationId": "createUploadUrl",
+        "summary": "createUploadUrl",
+        "tags": [
+          "Files"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "fileName",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "contentType",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "sha256",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uploadUrl": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "uploadUrl"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "operationId": "markForDeletion",
         "summary": "markForDeletion",
@@ -948,7 +999,7 @@
               "type": "string"
             },
             "in": "path",
-            "name": "fileId",
+            "name": "sha256",
             "required": true
           }
         ],
@@ -966,57 +1017,6 @@
                   },
                   "required": [
                     "msg"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/files": {
-      "post": {
-        "operationId": "getUploadUrl",
-        "summary": "getUploadUrl",
-        "tags": [
-          "Files"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "hash": {
-                    "type": "string"
-                  },
-                  "fileName": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "hash",
-                  "fileName"
-                ]
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "uploadUrl": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "uploadUrl"
                   ]
                 }
               }

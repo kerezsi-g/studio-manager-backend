@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "db";
 
 type QueryParams = {
   projectId: string;

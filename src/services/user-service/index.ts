@@ -1,5 +1,6 @@
-import { CreateUser } from "queries/CreateUser";
-import { GetUser } from "queries/GetUser";
+import { UserData } from "schemas/UserData.type";
+
+import * as Queries from "./queries";
 
 export namespace UserService {
   interface CreateUserArgs {
@@ -8,14 +9,29 @@ export namespace UserService {
     name: string;
   }
 
-  export function createUser(email: string, password: string, name: string) {
-    const result = CreateUser({ email, password, name });
+  export async function createUser({ email, password, name }: CreateUserArgs): Promise<UserData> {
+    const hashedPassword = await Bun.password.hash(password);
+
+    const result = Queries.CreateUser({ email, hashedPassword, name });
+
+    if (!result) {
+      throw new Error("Failed to create user");
+    }
 
     return result;
   }
 
-  export function authenticate(email: string, password: string) {
-    const user = GetUser({ email });
+  interface AuthenticateArgs {
+    email: string;
+    password: string;
+  }
+
+  export function authenticate({ email, password }: AuthenticateArgs) {
+    const user = Queries.GetUser({ email });
+
+    if (!user) {
+      throw new Error("Invalid credentials");
+    }
 
     const isPasswordValid = Bun.password.verify(password, user.hashedPassword);
 
@@ -23,26 +39,18 @@ export namespace UserService {
       throw new Error("Invalid credentials");
     }
 
-    return {
-      userId: user.userId,
-      email: user.email,
-      name: user.name,
-    };
+    return user;
   }
 
   export function getUserById(userId: string) {
-    return GetUser({ userId });
+    return Queries.GetUser({ userId });
   }
 }
 
-const __DEBUG_USER = {
+const DEBUG_USER = {
   email: "test",
   password: "test",
   name: "test",
 };
 
-export const DEBUG_USER = await UserService.createUser(
-  __DEBUG_USER.email,
-  __DEBUG_USER.password,
-  __DEBUG_USER.name
-);
+await UserService.createUser(DEBUG_USER);

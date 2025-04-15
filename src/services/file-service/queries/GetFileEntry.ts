@@ -1,35 +1,37 @@
-import { db } from "../db";
+import { db } from "db";
 
 type QueryParams = {
-  fileId: string;
+  sha256: string;
 };
 
 type QueryResult = {
-  fileId: string;
+  sha256: string;
   fileName: string;
   storageType: string;
+  contentType: string;
   createdAt: number;
 };
 
 const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	SELECT
-		file_id			AS "fileId"
+		sha256			AS "sha256"
 	,	file_name		AS "fileName"
 	,	storage_type	AS "storageType"
+	,	content_type	AS "contentType"
 	,	created_at		AS "createdAt"
 	FROM
 		t_files
 	WHERE
-		file_id = @fileId
+		sha256 = @sha256
 `);
 
 type Args = {
-  fileId: string;
+  sha256: string;
 };
 
-export function GetFileEntry({ fileId }: Args) {
+export function GetFileEntry({ sha256 }: Args) {
   const bindParams: QueryParams = {
-    fileId,
+    sha256,
   };
 
   const result = sql.get(bindParams);

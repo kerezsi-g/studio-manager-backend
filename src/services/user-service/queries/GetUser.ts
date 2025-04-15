@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "db";
 
 type QueryParams = {
   userId: string | null;
@@ -49,9 +49,5 @@ export function GetUser({ userId = null, email = null }: Args) {
 
   const result = sql.get(bindParams);
 
-  if (result) {
-    return result;
-  } else {
-    throw new Error("User not found");
-  }
+  return result;
 }

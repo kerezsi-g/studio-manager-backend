@@ -10,15 +10,8 @@ export const ProjectDetails = T.Object(
     projectName: T.String(),
     projectType: T.String(),
     createdAt: T.Integer(),
-    files: T.Array(
-      T.Object({
-        fileId: T.String(),
-        fileName: T.String(),
-        category: T.String(),
-        createdAt: T.Integer(),
-      })
-    ),
-    issues: T.Array(Issue),
+    files: T.Array(T.SchemaRef(ProjectMedia)),
+    issues: T.Array(T.SchemaRef(Issue)),
     /**
      * Define properties here
      */

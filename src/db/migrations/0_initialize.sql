@@ -33,26 +33,31 @@ CREATE TABLE IF NOT EXISTS t_projects(
 CREATE TABLE IF NOT EXISTS t_project_members(
 	project_id		TEXT	NOT NULL
 ,	user_id			TEXT	NOT NULL
+,	added_at		INTEGER	NOT NULL --unix timestamp
 ,	PRIMARY KEY (project_id, user_id)
 ,	FOREIGN KEY (project_id) REFERENCES t_projects(project_id)
 ,	FOREIGN KEY (user_id) REFERENCES t_users(user_id)
 );
 
 CREATE TABLE IF NOT EXISTS t_files(
-	file_id			TEXT	NOT NULL --sha256 hash of file
-,	file_name		TEXT	NOT NULL
-,	storage_type	TEXT	NOT NULL
-,	created_at		INTEGER --unix timestamp
-,	PRIMARY KEY (file_id)
+	sha256			TEXT	NOT NULL --sha256 hash of file
+,	file_name		TEXT	NOT NULL --original filename at time of upload
+,	storage_type	TEXT	NOT NULL --s3 or local, unused for now
+,	content_type	TEXT	NOT NULL --mime type
+,	created_at		INTEGER	NOT NULL --unix timestamp
+,	PRIMARY KEY (sha256)
 );
 
 CREATE TABLE IF NOT EXISTS t_project_files(
 	project_id		TEXT	NOT NULL
-,	file_id			TEXT	NOT NULL
-,	category		TEXT	NOT NULL --primary deliverable, supplementary media, hidden, source file, etc...
-,	PRIMARY KEY (project_id, file_id, category)
+,	sha256			TEXT	NOT NULL
+,	tag				TEXT	NOT NULL --primary deliverable, supplementary media, hidden, source file, etc...
+,	file_name		TEXT	NOT NULL
+,	path			TEXT			 --potentially usable to create a virtual folder structure for a project
+,	added_at		INTEGER NOT NULL --unix timestamp
+,	PRIMARY KEY (project_id, sha256, tag)
 ,	FOREIGN KEY (project_id) REFERENCES t_projects(project_id)
-,	FOREIGN KEY (file_id) REFERENCES t_files(file_id)
+,	FOREIGN KEY (sha256) REFERENCES t_files(sha256)
 );
 
 CREATE TABLE IF NOT EXISTS t_collections(

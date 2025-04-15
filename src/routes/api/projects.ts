@@ -1,21 +1,14 @@
 import { Type as T } from "@typebox";
 import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 
-import { CreateProject } from "queries/CreateProject";
-import { CreateIssue } from "queries/CreateIssue";
-import { GetUserProjects } from "queries/GetUserProjects";
-import { AddUserToProject } from "queries/AddUserToProject";
-import { RemoveUserFromProject } from "queries/RemoveUserFromProject";
-import { RemoveFileFromProject } from "queries/RemoveFileFromProject";
-import { UpdateProject } from "queries/UpdateProject";
-import { GetProjectUsers } from "queries/GetProjectUsers";
-import { ResolveIssue } from "queries/ResolveIssue";
-import { AddFileToProject } from "queries/AddFileToProject";
 import { authenticate } from "server/hooks/auth";
 import { Project } from "schemas/Project.type";
 import { UserData } from "schemas/UserData.type";
 import { ProjectDetails } from "schemas/ProjectDetails.type";
-import { ProjectsService } from "services/projects-service";
+
+import { ProjectsService, IssueService } from "services";
+import { ProjectMedia } from "schemas/ProjectMedia.type";
+import { Issue } from "schemas/Issue.type";
 
 const ProjectIdSchema = T.Object({
   projectId: T.String(),
@@ -29,6 +22,8 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
   instance.addHook("onRequest", authenticate);
 
   instance.addSchema(Project);
+  instance.addSchema(ProjectMedia);
+  instance.addSchema(Issue);
   instance.addSchema(ProjectDetails);
   instance.addSchema(UserData);
 
@@ -41,7 +36,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       },
     },
     handler: (request, reply) => {
-      const projects = GetUserProjects({ userId: request.user.id });
+      const projects = ProjectsService.getProjectsByUserId(request.user.id);
       reply.status(200).send(projects);
     },
   });
@@ -61,14 +56,14 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     handler: (request, reply) => {
       const { projectName, projectType } = request.body;
 
-      const projectId = CreateProject({ projectName, projectType });
+      const project = ProjectsService.createProject({ projectName, projectType });
 
       /**
        * Auto-add user to project members
        */
-      AddUserToProject({ projectId, userId: request.user.id });
+      ProjectsService.addProjectMember({ projectId: project.projectId, userId: request.user.id });
 
-      reply.status(200).send({ projectId });
+      reply.status(200).send({ projectId: project.projectId });
     },
   });
 
@@ -91,7 +86,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       const { projectId } = request.params;
       const { projectName } = request.body;
 
-      UpdateProject({ projectId, projectName });
+      ProjectsService.updateProject({ projectId, projectName });
 
       reply.status(200).send({ projectId });
     },
@@ -127,7 +122,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     handler: (request, reply) => {
       const { projectId } = request.params;
 
-      const users = GetProjectUsers({ projectId });
+      const users = ProjectsService.getProjectMembers(projectId);
 
       reply.status(200).send(users);
     },
@@ -148,7 +143,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     handler: (request, reply) => {
       const { projectId, userId } = request.params;
 
-      AddUserToProject({ projectId, userId });
+      ProjectsService.addProjectMember({ projectId, userId });
 
       reply.status(200).send({
         msg: "OK",
@@ -178,7 +173,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
         return;
       }
 
-      RemoveUserFromProject({ projectId, userId });
+      ProjectsService.removeProjectMember({ projectId, userId });
 
       reply.status(200).send({
         msg: "OK",
@@ -198,7 +193,10 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       },
     },
     handler: (request, reply) => {
-      const data = ProjectsService.getProjectDetails(request.user.id, request.params.projectId);
+      const data = ProjectsService.getProjectDetails({
+        userId: request.user.id,
+        projectId: request.params.projectId,
+      });
 
       reply.status(200).send(data);
     },
@@ -212,56 +210,58 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
         projectId: T.String(),
       }),
     },
-    handler: (request, reply) => {},
+    handler: (request, reply) => {
+      throw new Error("Not implemented");
+    },
   });
 
-  instance.put("/projects/:projectId/files/:fileId", {
+  instance.put("/projects/:projectId/files/:sha256", {
     schema: {
       tags: ["Projects"],
       operationId: "addFileToProject",
       params: T.Object({
         projectId: T.String(),
-        fileId: T.String(),
+        sha256: T.String(),
       }),
       querystring: T.Object({
-        category: T.String(),
+        tag: T.String(),
+        path: T.Optional(T.String()),
+        fileName: T.String(),
       }),
       response: {
         200: MessageSchema,
       },
     },
     handler: (request, reply) => {
-      const { projectId, fileId } = request.params;
-      const { category } = request.query;
+      const { projectId, sha256 } = request.params;
+      const { tag, path, fileName } = request.query;
 
-      AddFileToProject({ projectId, fileId, category });
+      ProjectsService.linkFileToProject({ projectId, sha256, tag, path, fileName });
 
-      reply.status(200).send({
-        msg: "OK",
-      });
+      reply.status(200).send({ msg: "OK" });
     },
   });
 
-  instance.delete("/projects/:projectId/files/:fileId", {
+  instance.delete("/projects/:projectId/files/:sha256", {
     schema: {
       tags: ["Projects"],
       operationId: "removeFileFromProject",
-      querystring: T.Object({
-        category: T.String(),
-      }),
       params: T.Object({
         projectId: T.String(),
-        fileId: T.String(),
+        sha256: T.String(),
+      }),
+      querystring: T.Object({
+        tag: T.String(),
       }),
       response: {
         200: MessageSchema,
       },
     },
     handler: (request, reply) => {
-      const { projectId, fileId } = request.params;
-      const { category } = request.query;
+      const { projectId, sha256 } = request.params;
+      const { tag } = request.query;
 
-      RemoveFileFromProject({ projectId, fileId, category });
+      ProjectsService.unlinkFileFromProject({ projectId, sha256, tag });
 
       reply.status(200).send({
         msg: "OK",
@@ -274,7 +274,9 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       tags: ["Projects"],
       operationId: "getIssues",
     },
-    handler: (request, reply) => {},
+    handler: (request, reply) => {
+      throw new Error("Not implemented");
+    },
   });
 
   instance.post("/projects/:projectId/issues", {
@@ -299,7 +301,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       const { projectId } = request.params;
       const { description, timestamp = null, duration = null } = request.body;
 
-      const issueId = CreateIssue({
+      const issueId = IssueService.createIssue({
         userId: request.user.id,
         projectId,
         description,
@@ -326,7 +328,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     handler: (request, reply) => {
       const { projectId, issueId } = request.params;
 
-      ResolveIssue({ userId: request.user.id, projectId, issueId });
+      IssueService.resolveIssue({ userId: request.user.id, projectId, issueId });
 
       reply.status(200).send({
         msg: "OK",

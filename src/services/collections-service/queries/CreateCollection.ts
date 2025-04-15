@@ -1,5 +1,5 @@
 import { generateUuid } from "utils/generateUuid";
-import { db } from "../db";
+import { db } from "db";
 
 type QueryParams = {
   collectionId: string;

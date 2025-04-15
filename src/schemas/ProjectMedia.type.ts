@@ -4,9 +4,12 @@ const $id = "ProjectMedia";
 
 export const ProjectMedia = T.Object(
   {
-    fileId: T.String(),
-    fileType: T.String(),
-    createdAt: T.Integer(),
+    sha256: T.String(),
+    contentType: T.String(),
+    fileName: T.String(),
+    path: T.String(),
+    tag: T.String(),
+    addedAt: T.Integer(),
   },
   { $id }
 );

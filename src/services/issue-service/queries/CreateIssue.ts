@@ -1,5 +1,5 @@
 import { generateUuid } from "utils/generateUuid";
-import { db } from "../db";
+import { db } from "db";
 
 type QueryParams = {
   projectId: string;
@@ -25,14 +25,14 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 `);
 
 interface Args {
-  projectId: string;
   userId: string;
+  projectId: string;
   description: string;
   timestamp: number | null;
   duration: number | null;
 }
 
-export function CreateIssue({ projectId, userId, description, timestamp, duration }: Args) {
+export function CreateIssue({ userId, projectId, description, timestamp, duration }: Args) {
   if (duration !== null && timestamp === null) {
     throw new Error("Timestamp cannot be null if a duration is provided");
   }

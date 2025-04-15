@@ -1,9 +1,9 @@
-import { db } from "../db";
+import { db } from "db";
 
 type QueryParams = {
   projectId: string;
-  fileId: string;
-  category: string;
+  sha256: string;
+  tag: string;
 };
 
 type QueryResult = {};
@@ -14,22 +14,22 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	WHERE
 		project_id = @projectId
 	AND
-		file_id = @fileId
+		sha256 = @sha256
 	AND
-		category = @category
+		tag = @tag
 `);
 
 interface Args {
   projectId: string;
-  fileId: string;
-  category: string;
+  sha256: string;
+  tag: string;
 }
 
-export function RemoveFileFromProject({ projectId, fileId, category }: Args) {
+export function UnlinkFileFromProject({ projectId, sha256, tag }: Args) {
   const bindParams: QueryParams = {
     projectId,
-    fileId,
-    category,
+    sha256,
+    tag,
   };
 
   sql.run(bindParams);

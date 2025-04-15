@@ -1,18 +1,18 @@
 import { Type as T } from "@typebox";
 import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import { FileService } from "services/file-service";
-import { StorageType } from "types/enums";
+
 import { authenticate } from "server/hooks/auth";
 
 const plugin: FastifyPluginAsyncTypebox = async function (instance) {
   instance.addHook("onRequest", authenticate);
 
-  instance.get("/files/:fileId", {
+  instance.get("/files/:sha256", {
     schema: {
       operationId: "getAccessUrl",
       tags: ["Files"],
       params: T.Object({
-        fileId: T.String(),
+        sha256: T.String(),
       }),
       response: {
         200: T.Object({
@@ -21,24 +21,27 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       },
     },
     handler: async (request, reply) => {
-      const { fileId } = request.params;
+      const { sha256 } = request.params;
 
-      const url = await FileService.getDownloadUrl(request.user.id, fileId);
+      const url = await FileService.getDownloadUrl(request.user.id, sha256);
 
       return reply.status(200).send({ url });
     },
   });
 
-  instance.post("/files", {
+  instance.put("/files/:sha256", {
     config: {
       adminOnly: true,
     },
     schema: {
       tags: ["Files"],
-      operationId: "getUploadUrl",
-      body: T.Object({
-        hash: T.String(),
+      operationId: "createUploadUrl",
+      params: T.Object({
+        sha256: T.String(),
+      }),
+      querystring: T.Object({
         fileName: T.String(),
+        contentType: T.String(),
       }),
       response: {
         200: T.Object({
@@ -47,18 +50,20 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       },
     },
     handler: async function (request, reply) {
-      const { hash, fileName } = request.body;
+      const { sha256 } = request.params;
+      const { fileName, contentType } = request.query;
 
-      const uploadUrl = await FileService.getUploadUrl(hash, {
+      const uploadUrl = await FileService.getUploadUrl({
+        sha256,
         fileName,
-        storageType: StorageType.Local,
+        contentType,
       });
 
       return reply.status(200).send({ uploadUrl });
     },
   });
 
-  instance.delete("/files/:fileId", {
+  instance.delete("/files/:sha256", {
     config: {
       adminOnly: true,
     },
@@ -66,7 +71,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       operationId: "markForDeletion",
       tags: ["Files"],
       params: T.Object({
-        fileId: T.String(),
+        sha256: T.String(),
       }),
       response: {
         200: T.Object({

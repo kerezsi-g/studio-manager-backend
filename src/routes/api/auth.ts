@@ -35,7 +35,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     handler: async (request, reply) => {
       const { email, password } = request.body;
 
-      const result = UserService.authenticate(email, password);
+      const result = UserService.authenticate({ email, password });
 
       const tokenPayload = {
         id: result.userId,

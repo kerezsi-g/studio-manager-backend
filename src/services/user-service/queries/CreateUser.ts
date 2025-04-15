@@ -1,5 +1,5 @@
 import { generateUuid } from "utils/generateUuid";
-import { db } from "../db";
+import { db } from "db";
 
 type QueryParams = {
   email: string;
@@ -32,13 +32,11 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 
 interface Args {
   email: string;
-  password: string;
+  hashedPassword: string;
   name: string;
 }
 
-export async function CreateUser({ email, password, name }: Args) {
-  const hashedPassword = await Bun.password.hash(password);
-
+export function CreateUser({ email, hashedPassword, name }: Args) {
   const bindParams: QueryParams = {
     userId: generateUuid(),
     email,
@@ -49,9 +47,5 @@ export async function CreateUser({ email, password, name }: Args) {
 
   const result = sql.get(bindParams);
 
-  if (result) {
-    return result;
-  } else {
-    throw new Error("Failed to create user");
-  }
+  return result;
 }

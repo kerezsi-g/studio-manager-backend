@@ -21,12 +21,12 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 		project_id as projectId
 `);
 
-interface Args {
+export interface CreateProjectArgs {
   projectName: string;
   projectType: string;
 }
 
-export function CreateProject({ projectName, projectType }: Args) {
+export function CreateProject({ projectName, projectType }: CreateProjectArgs) {
   const bindParams: QueryParams = {
     projectName,
     projectType,
@@ -36,9 +36,5 @@ export function CreateProject({ projectName, projectType }: Args) {
 
   const result = sql.get(bindParams);
 
-  if (result) {
-    return result.projectId;
-  } else {
-    throw new Error("Failed to create project");
-  }
+  return result;
 }

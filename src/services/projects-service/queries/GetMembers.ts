@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "db";
 
 type QueryParams = {
   projectId: string;
@@ -8,6 +8,7 @@ type QueryResult = {
   userId: string;
   name: string;
   email: string;
+  addedAt: number;
 };
 
 const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
@@ -15,6 +16,7 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 		U.user_id	AS "userId"
 	,	U.name		AS "name"
 	,	U.email		AS "email"
+	,	PM.added_at	AS "addedAt"
 	FROM
 		t_project_members PM
 	JOIN
@@ -23,13 +25,11 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 		PM.user_id = U.user_id
 	WHERE
 		PM.project_id = @projectId
+	ORDER BY
+		U.name ASC
 `);
 
-type Args = {
-  projectId: string;
-};
-
-export function GetProjectUsers({ projectId }: Args) {
+export function GetProjectMembers(projectId: string) {
   const bindParams: QueryParams = {
     projectId,
   };

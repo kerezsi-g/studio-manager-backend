@@ -20,12 +20,12 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 		project_id 	AS "projectId"
 `);
 
-interface Args {
+export interface UpdateProjectArgs {
   projectId: string;
   projectName: string;
 }
 
-export function UpdateProject({ projectId, projectName }: Args) {
+export function UpdateProject({ projectId, projectName }: UpdateProjectArgs) {
   const bindParams: QueryParams = {
     projectId,
     projectName,
@@ -33,9 +33,5 @@ export function UpdateProject({ projectId, projectName }: Args) {
 
   const result = sql.get(bindParams);
 
-  if (result) {
-    return result;
-  } else {
-    throw new Error("Failed to update project");
-  }
+  return result;
 }

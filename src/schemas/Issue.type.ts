@@ -7,10 +7,10 @@ export const Issue = T.Object(
     issueId: T.String(),
     userId: T.String(),
     description: T.String(),
-    timestamp: T.Integer(),
-    duration: T.Integer(),
+    timestamp: T.Nullable(T.Integer()),
+    duration: T.Nullable(T.Integer()),
     createdAt: T.Integer(),
-    resolvedAt: T.Integer(),
+    resolvedAt: T.Nullable(T.Integer()),
   },
   { $id }
 );

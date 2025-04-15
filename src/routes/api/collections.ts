@@ -1,14 +1,14 @@
 import { Type as T } from "@typebox";
 import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
-import { AddProjectToCollection } from "queries/AddProjectToCollection";
-import { CreateCollection } from "queries/CreateCollection";
-import { RemoveProjectFromCollection } from "queries/RemoveProjectFromCollection";
-import { UpdateCollection } from "queries/UpdateCollection";
-import { GetUserCollections } from "queries/GetUserCollections";
+import { AddProjectToCollection } from "services/collections-service/queries/AddProjectToCollection";
+import { CreateCollection } from "services/collections-service/queries/CreateCollection";
+import { RemoveProjectFromCollection } from "services/collections-service/queries/RemoveProjectFromCollection";
+import { UpdateCollection } from "services/collections-service/queries/UpdateCollection";
+import { GetUserCollections } from "services/collections-service/queries/GetUserCollections";
 import { authenticate } from "server/hooks/auth";
 import { Project } from "schemas/Project.type";
 import { Collection } from "schemas/Collection.type";
-import { GetProjectsInCollection } from "queries/GetProjectsInCollection";
+import { GetProjectsInCollection } from "services/collections-service/queries/GetProjectsInCollection";
 
 const CollectionIdSchema = T.Object({
   collectionId: T.String(),

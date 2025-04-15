@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "db";
 
 type QueryParams = {
   projectId: string;
@@ -33,11 +33,7 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 		created_at DESC
 `);
 
-type Args = {
-  projectId: string;
-};
-
-export function GetProjectIssues({ projectId }: Args) {
+export function GetProjectIssues(projectId: string) {
   const bindParams: QueryParams = {
     projectId,
   };

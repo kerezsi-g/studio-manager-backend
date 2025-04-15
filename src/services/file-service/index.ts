@@ -1,9 +1,7 @@
 import { S3Client } from "bun";
-import { CreateFileEntry } from "queries/CreateFileEntry";
-import { GetFileEntry } from "queries/GetFileEntry";
-import { StorageType } from "types/enums";
+import * as Queries from "./queries";
 
-const localStore = new S3Client({
+const s3Client = new S3Client({
   endpoint: "http://localhost:9000",
   bucket: "studio-storage",
   accessKeyId: "yARck0qHa0jpE3TtLBnq",
@@ -11,29 +9,16 @@ const localStore = new S3Client({
 });
 
 export namespace FileService {
-  export interface FileDescriptor {
-    
-	storageType: StorageType;
+  interface FileMeta {
+    sha256: string;
     fileName: string;
-	
+    contentType: string;
   }
 
   function validateAccess(userId: string, fileId: string) {
     /**
      * TODO: implement
      */
-  }
-
-  function getStorageClient(type: string) {
-    if (type === StorageType.Local) {
-      return localStore;
-    }
-
-    if (type === StorageType.Cloud) {
-      throw new Error("Cloud storage not yet implemented");
-    }
-
-    throw new Error("Unknown storage type");
   }
 
   function genHash(buf: ArrayBuffer) {
@@ -46,18 +31,16 @@ export namespace FileService {
     return hash;
   }
 
-  export async function getDownloadUrl(userId: string, fileId: string) {
-    validateAccess(userId, fileId);
+  export async function getDownloadUrl(userId: string, sha256: string) {
+    validateAccess(userId, sha256);
 
-    const file = GetFileEntry({ fileId });
+    const file = Queries.GetFileEntry({ sha256 });
 
     if (!file) {
       throw new Error("File not found");
     }
 
-    const s3Client = getStorageClient(file.storageType);
-
-    const s3file = s3Client.file(file.fileId);
+    const s3file = s3Client.file(file.sha256);
 
     const publicUrl = s3file.presign({
       expiresIn: 3600,
@@ -67,15 +50,14 @@ export namespace FileService {
     return publicUrl;
   }
 
-  export async function getUploadUrl(hash: string, descriptor: FileDescriptor) {
-    CreateFileEntry({
-      fileId: hash,
-      fileName: descriptor.fileName,
-      storageType: descriptor.storageType,
+  export async function getUploadUrl({ sha256, fileName, contentType }: FileMeta) {
+    const entry = Queries.CreateFileEntry({
+      sha256,
+      fileName,
+      contentType,
     });
 
-    const s3Client = getStorageClient(descriptor.storageType);
-    const s3file = s3Client.file(hash);
+    const s3file = s3Client.file(sha256);
 
     const publicUrl = s3file.presign({
       expiresIn: 3600,
@@ -85,19 +67,15 @@ export namespace FileService {
     return publicUrl;
   }
 
-  export async function uploadMedia(buf: ArrayBuffer, descriptor: FileDescriptor) {
-    const mediaId = genHash(buf);
-    const s3Client = getStorageClient(descriptor.storageType);
-    const s3file = s3Client.file(mediaId);
-
-    const exists = await s3file.exists();
-
-    if (exists) {
-      return { mediaId, exists };
-    } else {
-      await s3file.write(buf);
-    }
-
-    return { mediaId, exists };
-  }
+  //   export async function uploadMedia(buf: ArrayBuffer, descriptor: FileDescriptor) {
+  //     const sha256 = genHash(buf);
+  //     const s3file = s3Client.file(sha256);
+  //     const exists = await s3file.exists();
+  //     if (exists) {
+  //       return { mediaId: sha256, exists };
+  //     } else {
+  //       await s3file.write(buf);
+  //     }
+  //     return { mediaId: sha256, exists };
+  //   }
 }

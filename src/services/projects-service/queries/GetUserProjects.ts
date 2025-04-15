@@ -1,8 +1,7 @@
-import { db } from "../db";
+import { db } from "db";
 
 type QueryParams = {
   userId: string;
-  projectId: string;
 };
 
 type QueryResult = {
@@ -22,28 +21,16 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 		v_user_projects
 	WHERE
 		user_id = @userId
-	AND
-		project_id = @projectId
 	ORDER BY
 		created_at DESC
 `);
 
-type Args = {
-  userId: string;
-  projectId: string;
-};
-
-export function GetProjectById({ userId, projectId }: Args) {
+export function GetUserProjects(userId: string) {
   const bindParams: QueryParams = {
     userId,
-    projectId,
   };
 
-  const result = sql.get(bindParams);
-
-  if (!result) {
-    throw new Error("Project not found");
-  }
+  const result = sql.all(bindParams);
 
   return result;
 }

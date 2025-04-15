@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "db";
 
 type QueryParams = {
   projectId: string;
@@ -18,7 +18,7 @@ interface Args {
   userId: string;
 }
 
-export function RemoveUserFromProject({ projectId, userId }: Args) {
+export function RemoveProjectMember({ projectId, userId }: Args) {
   const bindParams: QueryParams = {
     projectId,
     userId,
