@@ -1,5 +1,6 @@
 import { spawn } from "child_process";
 import { AudioPeaks } from "types/peaks";
+import { makeSequential } from "./make-sequential";
 
 interface AUDIOWAVEFORM_OUTPUT {
   version: number;
@@ -16,63 +17,65 @@ interface GenPeaksParams {
   chunkSize?: number;
 }
 
-export async function generatePeaks(
-  audioBuffer: Buffer,
-  { bits = 8, chunkSize = 4096 }: GenPeaksParams
-): Promise<AudioPeaks> {
-  const audiowaveformArgs = [
-    // Nested array format purely for readability
-    ["--input-format", "wav"], // Assuming WAV input
-    ["--output-format", "json"],
-    "--split-channels", // Generate peaks for each individual channel
-    ["--bits", bits.toString()],
-    ["-z", chunkSize.toString()],
-  ].flat();
+export const generatePeaks = makeSequential(
+  async (audioBuffer: Buffer, args: GenPeaksParams): Promise<AudioPeaks> => {
+    const { bits = 8, chunkSize = 4096 } = args;
 
-  const audiowaveform = spawn("lib/audiowaveform", audiowaveformArgs);
+    const audiowaveformArgs = [
+      // Nested array format purely for readability
+      ["--input-format", "wav"], // Assuming WAV input
+      ["--output-format", "json"],
+      "--split-channels", // Generate peaks for each individual channel
+      ["--bits", bits.toString()],
+      ["-z", chunkSize.toString()],
+    ].flat();
 
-  audiowaveform.stderr.on("data", (data) => {
-    console.error(`audiowaveform error: ${data}`);
-  });
+    const audiowaveform = spawn("lib/audiowaveform", audiowaveformArgs);
 
-  // Pipe the audio buffer to audiowaveform's stdin
-  audiowaveform.stdin.write(audioBuffer);
-  audiowaveform.stdin.end();
+    audiowaveform.stderr.on("data", (data) => {
+      console.error(`audiowaveform error: ${data}`);
+    });
 
-  let jsonOutput = "";
+    // Pipe the audio buffer to audiowaveform's stdin
+    audiowaveform.stdin.write(audioBuffer);
+    audiowaveform.stdin.end();
 
-  // Collect JSON output from stdout
-  for await (const chunk of audiowaveform.stdout) {
-    jsonOutput += chunk;
-  }
+    let jsonOutput = "";
 
-  // Error handling: Throw if audiowaveform exits with a non-zero code
-  const exitCode = await new Promise<number>((resolve, reject) => {
-    audiowaveform.on("close", resolve);
-    audiowaveform.on("error", reject);
-  });
+    // Collect JSON output from stdout
+    for await (const chunk of audiowaveform.stdout) {
+      jsonOutput += chunk;
+    }
 
-  if (exitCode) {
-    throw new Error(`audiowaveform exited with code ${exitCode}`);
-  }
+    // Error handling: Throw if audiowaveform exits with a non-zero code
+    const exitCode = await new Promise<number>((resolve, reject) => {
+      audiowaveform.on("close", resolve);
+      audiowaveform.on("error", reject);
+    });
 
-  try {
-    const { sample_rate, samples_per_pixel, bits, length, data, channels } = JSON.parse(
-      jsonOutput
-    ) as AUDIOWAVEFORM_OUTPUT;
+    if (exitCode) {
+      throw new Error(`audiowaveform exited with code ${exitCode}`);
+    }
 
-    return {
-      sampleRate: sample_rate,
-      samplesPerPixel: samples_per_pixel,
-      length,
-      bits,
-      peaks: deinterleave(data, channels),
-      channels,
-    };
-  } catch (error: unknown) {
-    throw new Error(`Failed to parse audiowaveform output: ${error}`);
-  }
-}
+    try {
+      const { sample_rate, samples_per_pixel, bits, length, data, channels } = JSON.parse(
+        jsonOutput
+      ) as AUDIOWAVEFORM_OUTPUT;
+
+      return {
+        sampleRate: sample_rate,
+        samplesPerPixel: samples_per_pixel,
+        length,
+        bits,
+        peaks: deinterleave(data, channels),
+        channels,
+      };
+    } catch (error: unknown) {
+      throw new Error(`Failed to parse audiowaveform output: ${error}`);
+    }
+  },
+  { delayMs: 100 }
+);
 
 function deinterleave(data: number[], channels: number): number[][] {
   const result: number[][] = [];

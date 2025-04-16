@@ -1,4 +1,4 @@
-import { Type as T } from "@typebox";
+import { Type as T } from "utils/typebox-openapi";
 import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import { FileService } from "services/file-service";
 
@@ -11,6 +11,9 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     schema: {
       operationId: "getAccessUrl",
       tags: ["Files"],
+      querystring: T.Object({
+        preview: T.Optional(T.Boolean()),
+      }),
       params: T.Object({
         sha256: T.String(),
       }),
@@ -22,8 +25,9 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     },
     handler: async (request, reply) => {
       const { sha256 } = request.params;
+      const { preview } = request.query;
 
-      const url = await FileService.getDownloadUrl(request.user.id, sha256);
+      const url = await FileService.getDownloadUrl(request.user.id, sha256, preview);
 
       return reply.status(200).send({ url });
     },

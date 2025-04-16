@@ -4,6 +4,7 @@ import { Project } from "schemas/Project.type";
 import { UserData } from "schemas/UserData.type";
 
 import * as Queries from "./queries";
+import { FilePostprocessingService } from "services/file-postprocessing-service";
 
 export namespace ProjectsService {
   interface ProjectMember {
@@ -112,6 +113,8 @@ export namespace ProjectsService {
     if (!result) {
       throw new Error("Failed to link file to project");
     }
+
+    FilePostprocessingService.process(sha256);
 
     return result;
   }

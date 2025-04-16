@@ -1,4 +1,4 @@
-import { Type as T, Static } from "@typebox";
+import { Type as T, Static } from "utils/typebox-openapi";
 import { ProjectMedia } from "./ProjectMedia.type";
 import { Issue } from "./Issue.type";
 

@@ -1,5 +1,5 @@
-import { Type as T } from "@typebox";
-import { createConfig } from "utils/createConfig";
+import { Type as T } from "utils/typebox-openapi";
+import { createConfig } from "utils/create-config-file";
 
 const schema = T.Object({
   port: T.Integer({ default: 3000 }),

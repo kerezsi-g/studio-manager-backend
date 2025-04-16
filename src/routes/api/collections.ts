@@ -1,4 +1,4 @@
-import { Type as T } from "@typebox";
+import { Type as T } from "utils/typebox-openapi";
 import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import { AddProjectToCollection } from "services/collections-service/queries/AddProjectToCollection";
 import { CreateCollection } from "services/collections-service/queries/CreateCollection";

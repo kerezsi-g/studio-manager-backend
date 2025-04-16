@@ -1,10 +1,8 @@
 import { ProjectsService } from "services/projects-service";
 import { CreateIssue, ResolveIssue } from "./queries";
 import { Issue } from "schemas/Issue.type";
-import { Omit } from "@typebox";
 
 //Directly exposes the underlying queries, as there is no additional logic yet
-
 export namespace IssueService {
   type CreateIssueArgs = Omit<Issue, "issueId" | "createdAt" | "resolvedAt"> & {
     projectId: string;

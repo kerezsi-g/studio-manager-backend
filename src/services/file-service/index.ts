@@ -1,5 +1,8 @@
-import { S3Client } from "bun";
+import { s3, S3Client } from "bun";
 import * as Queries from "./queries";
+import { Logger } from "logger";
+
+const logger = new Logger("FileService");
 
 const s3Client = new S3Client({
   endpoint: "http://localhost:9000",
@@ -31,16 +34,14 @@ export namespace FileService {
     return hash;
   }
 
-  export async function getDownloadUrl(userId: string, sha256: string) {
+  export async function getDownloadUrl(userId: string, sha256: string, preview: boolean = false) {
     validateAccess(userId, sha256);
 
-    const file = Queries.GetFileEntry({ sha256 });
+    const file = await getFileMetadata(sha256);
 
-    if (!file) {
-      throw new Error("File not found");
-    }
+    const s3fileName = preview ? `previews/${sha256}` : file.fileName;
 
-    const s3file = s3Client.file(file.sha256);
+    const s3file = s3Client.file(s3fileName);
 
     const publicUrl = s3file.presign({
       expiresIn: 3600,
@@ -67,15 +68,45 @@ export namespace FileService {
     return publicUrl;
   }
 
-  //   export async function uploadMedia(buf: ArrayBuffer, descriptor: FileDescriptor) {
-  //     const sha256 = genHash(buf);
-  //     const s3file = s3Client.file(sha256);
-  //     const exists = await s3file.exists();
-  //     if (exists) {
-  //       return { mediaId: sha256, exists };
-  //     } else {
-  //       await s3file.write(buf);
-  //     }
-  //     return { mediaId: sha256, exists };
-  //   }
+  export async function getFileMetadata(sha256: string) {
+    const entry = Queries.GetFileEntry({ sha256 });
+
+    if (!entry) {
+      throw new Error("File not found");
+    }
+
+    return entry;
+  }
+  export async function uploadMedia(file: Bun.BunFile, fileName: string, contentType: string) {
+    await s3Client.file(fileName).write(file, {
+      type: contentType,
+    });
+  }
+
+  export async function getTemporaryLocalFile(sha256: string) {
+    const s3file = s3Client.file(sha256);
+
+    logger.info(`Acquiring temporary local file ${sha256}...`);
+
+    const file = Bun.file("temp/" + sha256);
+    const sink = file.writer();
+
+    const readStream = s3file.stream();
+    const reader = readStream.getReader();
+
+    logger.info(`Writing temp file ${sha256}...`);
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        await sink.end();
+        break;
+      }
+      await sink.write(value);
+    }
+
+    logger.info(`Temp file ${sha256} written`);
+
+    return file;
+  }
 }

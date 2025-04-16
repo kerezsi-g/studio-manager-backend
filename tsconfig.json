@@ -2,9 +2,7 @@
   "include": ["./src", "../shared/*.d.ts", "./src/types.d.ts"],
   "compilerOptions": {
     "jsx": "preserve",
-    "paths": {
-      "@typebox": ["utils/typebox"]
-    },
+    // "paths": {},
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
     /* Basic Options */
     // "incremental": true,                         /* Enable incremental compilation */
@@ -19,7 +17,7 @@
     // "sourceMap": true,                           /* Generates corresponding '.map' file. */
     // "outFile": "./",                             /* Concatenate and emit output to single file. */
     "outDir": "./dist" /* Redirect output structure to the directory. */,
-    "lib": ["es2020", "esnext.promise"],
+    "lib": ["es2024"],
     "rootDir": "./src" /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */,
     // "composite": true,                           /* Enable project compilation */
     // "tsBuildInfoFile": "./",                     /* Specify file to store incremental compilation information */

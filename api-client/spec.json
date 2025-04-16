@@ -906,6 +906,14 @@
         "parameters": [
           {
             "schema": {
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "preview",
+            "required": false
+          },
+          {
+            "schema": {
               "type": "string"
             },
             "in": "path",
