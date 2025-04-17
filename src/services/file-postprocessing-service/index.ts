@@ -1,7 +1,6 @@
 import { FileService } from "services/file-service";
-import { extractThumbnail } from "./utils/extractThumbnail";
 import { Logger } from "logger";
-import { resizeImage } from "./utils/resizeImage";
+import { extractThumbnail, extractPeaks, resizeImage } from "./utils";
 
 const logger = new Logger("PostProcessingService");
 
@@ -64,7 +63,9 @@ export namespace FilePostprocessingService {
     return { file: resizedThumbnail, contentType: "image/jpeg" };
   }
 
-  function processAudio(file: Bun.BunFile): Promise<PreviewFile> {
-    throw new Error("Audio post-processing is not yet implemented");
+  async function processAudio(file: Bun.BunFile): Promise<PreviewFile> {
+    const peaks = await extractPeaks(file);
+
+    return { file: peaks, contentType: "application/json" };
   }
 }
