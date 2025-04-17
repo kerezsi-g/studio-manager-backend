@@ -20,5 +20,20 @@ export default createConfig(
       maxHeight: Type.Integer({ default: 360 }),
       quality: Type.Integer({ default: 85 }),
     }),
+    libs: Type.Object({
+      audiowaveform: Type.String({
+        default: "lib/audiowaveform",
+      }),
+      ffmpeg: Type.String({
+        default: "ffmpeg",
+      }),
+      imagemagick: Type.String({
+        default: "imagemagick",
+      }),
+    }),
+    audioPeaks: Type.Object({
+      bits: Type.Union([Type.Literal(8), Type.Literal(16), Type.Literal(24)]),
+      samplesPerPeak: Type.Integer({ default: 4096 }),
+    }),
   })
 );
