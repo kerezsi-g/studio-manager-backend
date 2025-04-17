@@ -898,8 +898,8 @@
     },
     "/files/{sha256}": {
       "get": {
-        "operationId": "getAccessUrl",
-        "summary": "getAccessUrl",
+        "operationId": "getResource",
+        "summary": "getResource",
         "tags": [
           "Files"
         ],
@@ -910,6 +910,14 @@
             },
             "in": "query",
             "name": "preview",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "noRedirect",
             "required": false
           },
           {

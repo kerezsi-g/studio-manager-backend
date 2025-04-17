@@ -9,10 +9,11 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
 
   instance.get("/files/:sha256", {
     schema: {
-      operationId: "getAccessUrl",
+      operationId: "getResource",
       tags: ["Files"],
       querystring: T.Object({
         preview: T.Optional(T.Boolean()),
+        noRedirect: T.Optional(T.Boolean()),
       }),
       params: T.Object({
         sha256: T.String(),
@@ -25,11 +26,17 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     },
     handler: async (request, reply) => {
       const { sha256 } = request.params;
-      const { preview } = request.query;
+      const { preview, noRedirect } = request.query;
 
       const url = await FileService.getDownloadUrl(request.user.id, sha256, preview);
 
-      return reply.status(200).send({ url });
+      if (noRedirect) {
+        reply.status(200).send({ url });
+      } else {
+        reply.redirect(url, 302);
+      }
+
+      return reply;
     },
   });
 
