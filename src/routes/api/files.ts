@@ -3,9 +3,12 @@ import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import { FileService } from "services/file-service";
 
 import { authenticate } from "server/hooks/auth";
+import { AudioPeaks } from "schemas/AudioPeaks.type";
 
 const plugin: FastifyPluginAsyncTypebox = async function (instance) {
   instance.addHook("onRequest", authenticate);
+
+  instance.addSchema(AudioPeaks);
 
   instance.get("/files/:sha256", {
     schema: {

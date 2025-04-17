@@ -170,6 +170,44 @@
         ],
         "title": "ProjectDetails"
       },
+      "AudioPeaks": {
+        "type": "object",
+        "properties": {
+          "sampleRate": {
+            "type": "integer"
+          },
+          "samplesPerPixel": {
+            "type": "integer"
+          },
+          "length": {
+            "type": "integer"
+          },
+          "bits": {
+            "type": "integer"
+          },
+          "peaks": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "channels": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sampleRate",
+          "samplesPerPixel",
+          "length",
+          "bits",
+          "peaks",
+          "channels"
+        ],
+        "title": "AudioPeaks"
+      },
       "Collection": {
         "type": "object",
         "properties": {
