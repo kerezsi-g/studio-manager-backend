@@ -36,7 +36,7 @@ export namespace FileService {
 
     const file = await getFileMetadata(sha256);
 
-    const s3fileName = preview ? `previews/${sha256}` : file.fileName;
+    const s3fileName = preview ? `previews/${sha256}` : file.sha256;
 
     const s3file = s3Client.file(s3fileName);
 
