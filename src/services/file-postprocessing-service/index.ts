@@ -1,14 +1,11 @@
 import { FileService } from "services/file-service";
-import { genVideoThumbnail } from "./utils/genVideoThumbnail";
+import { extractThumbnail } from "./utils/extractThumbnail";
 import { Logger } from "logger";
-import { genImageThumbnail } from "./utils/genImageThumbnail";
+import { resizeImage } from "./utils/resizeImage";
 
 const logger = new Logger("PostProcessingService");
 
 export namespace FilePostprocessingService {
-  const MAX_WIDTH = 320;
-  const MAX_HEIGHT = 240;
-
   interface PreviewFile {
     file: Bun.BunFile;
     contentType: string;
@@ -50,11 +47,7 @@ export namespace FilePostprocessingService {
   async function processImage(file: Bun.BunFile): Promise<PreviewFile> {
     logger.info("Generating image thumbnail...");
 
-    const thumbnail = await genImageThumbnail(file, MAX_WIDTH, MAX_HEIGHT);
-
-    if (!thumbnail) {
-      throw new Error("Failed to generate thumbnail");
-    }
+    const thumbnail = await resizeImage(file);
 
     return { file: thumbnail, contentType: "image/jpeg" };
   }
@@ -62,13 +55,13 @@ export namespace FilePostprocessingService {
   async function processVideo(file: Bun.BunFile): Promise<PreviewFile> {
     logger.info("Generating video thumbnail...");
 
-    const thumbnail = await genVideoThumbnail(file);
+    const extractedThumbnail = await extractThumbnail(file);
 
-    if (!thumbnail) {
-      throw new Error("Failed to generate thumbnail");
-    }
+    const resizedThumbnail = await resizeImage(extractedThumbnail);
 
-    return { file: thumbnail, contentType: "image/jpeg" };
+    await extractedThumbnail.unlink();
+
+    return { file: resizedThumbnail, contentType: "image/jpeg" };
   }
 
   function processAudio(file: Bun.BunFile): Promise<PreviewFile> {
