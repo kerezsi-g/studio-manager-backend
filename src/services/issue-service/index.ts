@@ -12,11 +12,12 @@ export namespace IssueService {
     userId,
     projectId,
     description,
-    timestamp,
-    duration,
+    timestamp = null,
+    duration = null,
+    file,
   }: CreateIssueArgs) {
     ProjectsService.validateAccess({ userId, projectId });
-    const result = CreateIssue({ userId, projectId, description, timestamp, duration });
+    const result = CreateIssue({ userId, projectId, description, timestamp, duration, file });
 
     return result;
   }
