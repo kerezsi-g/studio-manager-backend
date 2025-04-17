@@ -3,6 +3,7 @@ import { db } from "db";
 
 type QueryParams = {
   projectId: string;
+  file: string;
   issueId: string;
   userId: string;
   description: string;
@@ -17,9 +18,9 @@ type QueryResult = {
 
 const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	INSERT INTO
-		t_issues (issue_id, project_id, user_id, description, timestamp, duration, created_at)
+		t_issues (issue_id, project_id, file, user_id, description, timestamp, duration, created_at)
 	VALUES
-		(@issueId, @projectId, @userId, @description, @timestamp, @duration, @createdAt)
+		(@issueId, @projectId, @file, @userId, @description, @timestamp, @duration, @createdAt)
 	RETURNING
 		issue_id as "issueId"
 `);
@@ -27,12 +28,13 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 interface Args {
   userId: string;
   projectId: string;
+  file: string;
   description: string;
   timestamp: number | null;
   duration: number | null;
 }
 
-export function CreateIssue({ userId, projectId, description, timestamp, duration }: Args) {
+export function CreateIssue({ userId, projectId, file, description, timestamp, duration }: Args) {
   if (duration !== null && timestamp === null) {
     throw new Error("Timestamp cannot be null if a duration is provided");
   }
@@ -40,6 +42,7 @@ export function CreateIssue({ userId, projectId, description, timestamp, duratio
   const bindParams: QueryParams = {
     issueId: generateUuid(),
     projectId,
+    file,
     userId,
     description,
     timestamp,

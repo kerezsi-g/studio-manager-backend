@@ -5,6 +5,9 @@ const $id = "Issue";
 export const Issue = T.Object(
   {
     issueId: T.String(),
+    file: T.String({
+      description: "SHA-256 hash of the linked file",
+    }),
     userId: T.String(),
     description: T.String(),
     timestamp: T.Nullable(T.Integer()),

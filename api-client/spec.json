@@ -94,6 +94,10 @@
           "issueId": {
             "type": "string"
           },
+          "file": {
+            "description": "SHA-256 hash of the linked file",
+            "type": "string"
+          },
           "userId": {
             "type": "string"
           },
@@ -118,6 +122,7 @@
         },
         "required": [
           "issueId",
+          "file",
           "userId",
           "description",
           "timestamp",
@@ -799,6 +804,9 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "file": {
+                    "type": "string"
+                  },
                   "description": {
                     "type": "string"
                   },
@@ -810,6 +818,7 @@
                   }
                 },
                 "required": [
+                  "file",
                   "description"
                 ]
               }

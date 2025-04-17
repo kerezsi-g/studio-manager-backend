@@ -7,6 +7,7 @@ type QueryParams = {
 type QueryResult = {
   issueId: string;
   projectId: string;
+  file: string;
   userId: string;
   description: string;
   timestamp: number;
@@ -19,6 +20,7 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	SELECT
 		issue_id		AS "issueId"
 	,	project_id		AS "projectId"
+	,	file			AS "file"
 	,	user_id			AS "userId"
 	,	description		AS "description"
 	,	timestamp		AS "timestamp"

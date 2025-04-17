@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS t_collection_projects(
 CREATE TABLE IF NOT EXISTS t_issues(
 	issue_id		TEXT	NOT NULL
 ,	project_id		TEXT	NOT NULL
+,	file			TEXT	NOT NULL
 ,	user_id			TEXT	NOT NULL
 ,	description		TEXT	NOT NULL
 ,	timestamp		INTEGER --ms
@@ -89,7 +90,7 @@ CREATE TABLE IF NOT EXISTS t_issues(
 ,	created_at		INTEGER --unix timestamp
 -- ,	updated_at		INTEGER --unix timestamp
 ,	PRIMARY KEY (issue_id)
-,	FOREIGN KEY (project_id) REFERENCES t_projects(project_id)
+,	FOREIGN KEY (project_id, file) REFERENCES t_project_files(project_id, sha256)
 ,	FOREIGN KEY (user_id) REFERENCES t_users(user_id)
 );
 
