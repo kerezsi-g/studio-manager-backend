@@ -1,7 +1,9 @@
-import CFG from "./config";
+import config from "config";
+
+const { httpServer } = config;
 
 function parseCorsOrigin() {
-  const strings = CFG.allowedOrigins;
+  const strings = httpServer.allowedOrigins;
 
   return strings.map((str) => {
     if (str.startsWith("/")) {

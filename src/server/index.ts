@@ -3,14 +3,14 @@ import path from "node:path";
 import Fastify from "fastify";
 import fastifyCookie from "@fastify/cookie";
 import fastifyJwt from "@fastify/jwt";
-import fastifyStatic from "@fastify/static";
 import fastifyCompress from "@fastify/compress";
-// import fastifyCors from "@fastify/cors";
 import { requestLogger, Logger } from "logger";
 
 import { RouteDefinitions } from "../routes";
 
-import CFG from "./config";
+import config from "config";
+
+const { httpServer } = config;
 
 declare module "@fastify/jwt" {
   interface FastifyJWT {
@@ -49,38 +49,19 @@ server.register(fastifyJwt, {
 
 server.register(RouteDefinitions);
 
-/**
- * Initialize static file server according to configuration
- */
-if (CFG.fileServer.enabled && CFG.fileServer.path) {
-  server.register(fastifyStatic, {
-    root: CFG.fileServer.path,
-  });
-
-  if (CFG.fileServer.defaultFile !== undefined) {
-    server.setNotFoundHandler((request, reply) => {
-      if (request.raw.url && request.raw.url.startsWith("/api")) {
-        return reply.status(400).send();
-      }
-
-      return reply.sendFile(CFG.fileServer.defaultFile!, path.resolve(CFG.fileServer.path!));
-    });
-  }
-}
-
 export async function startServer() {
   try {
     await server.listen({
-      port: CFG.port,
+      port: httpServer.port,
     });
 
     await server.ready();
 
     logger.info({
-      msg: `Server started successfully, listening on port ${CFG.port}`,
+      msg: `Server started successfully, listening on port ${httpServer.port}`,
     });
 
-    const resp = await fetch(`http://localhost:${CFG.port}/api/reference/json`);
+    const resp = await fetch(`http://localhost:${httpServer.port}/api/reference/json`);
     const spec = await resp.json();
 
     await Bun.write("api-client/spec.json", JSON.stringify(spec, null, 2));

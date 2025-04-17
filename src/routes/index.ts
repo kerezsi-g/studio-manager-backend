@@ -7,7 +7,7 @@ import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 
 import { OasConfig } from "./oas";
-import CFG from "server/config";
+import config from "config";
 
 const API_ROUTES_FOLDERS = ["/api"];
 
@@ -27,7 +27,7 @@ export async function RouteDefinitions(instance: FastifyInstance) {
   /**
    * Expose swagger documentation based on server configuration
    */
-  if (CFG.exposeApiDocs) {
+  if (config.httpServer.exposeApiDocs) {
     instance.register(fastifySwaggerUi, {
       routePrefix: "/api/reference",
     });

@@ -1,15 +1,12 @@
-import { s3, S3Client } from "bun";
+import { S3Client } from "bun";
 import * as Queries from "./queries";
 import { Logger } from "logger";
 
+import config from "config";
+
 const logger = new Logger("FileService");
 
-const s3Client = new S3Client({
-  endpoint: "http://localhost:9000",
-  bucket: "studio-storage",
-  accessKeyId: "yARck0qHa0jpE3TtLBnq",
-  secretAccessKey: "BjhKoeGXfJDeAYuN7MQfmiChhP09UEl4oPOYwVWU",
-});
+const s3Client = new S3Client(config.s3);
 
 export namespace FileService {
   interface FileMeta {
