@@ -7,6 +7,7 @@ type QueryParams = {
 type QueryResult = {
   sha256: string;
   path: string;
+  fileName: string;
   contentType: string;
   addedAt: number;
   tag: string;
