@@ -142,7 +142,12 @@
             "type": "string"
           },
           "projectType": {
-            "type": "string"
+            "enum": [
+              "audio",
+              "video",
+              "image"
+            ],
+            "title": "ProjectType"
           },
           "createdAt": {
             "type": "integer"
@@ -169,6 +174,14 @@
           "issues"
         ],
         "title": "ProjectDetails"
+      },
+      "ProjectType": {
+        "enum": [
+          "audio",
+          "video",
+          "image"
+        ],
+        "title": "ProjectType"
       },
       "AudioPeaks": {
         "type": "object",
