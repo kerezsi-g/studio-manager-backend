@@ -106,11 +106,11 @@
           },
           "timestamp": {
             "nullable": true,
-            "type": "integer"
+            "type": "number"
           },
           "duration": {
             "nullable": true,
-            "type": "integer"
+            "type": "number"
           },
           "createdAt": {
             "type": "integer"
@@ -849,10 +849,10 @@
                     "type": "string"
                   },
                   "timestamp": {
-                    "type": "integer"
+                    "type": "number"
                   },
                   "duration": {
-                    "type": "integer"
+                    "type": "number"
                   }
                 },
                 "required": [

@@ -299,8 +299,8 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       body: T.Object({
         file: T.String(),
         description: T.String(),
-        timestamp: T.Optional(T.Integer()),
-        duration: T.Optional(T.Integer()),
+        timestamp: T.Optional(T.Number()),
+        duration: T.Optional(T.Number()),
       }),
       response: {
         200: T.Object({

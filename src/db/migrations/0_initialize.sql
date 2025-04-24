@@ -84,8 +84,8 @@ CREATE TABLE IF NOT EXISTS t_issues(
 ,	file			TEXT	NOT NULL
 ,	user_id			TEXT	NOT NULL
 ,	description		TEXT	NOT NULL
-,	timestamp		INTEGER --ms
-,	duration		INTEGER --ms
+,	timestamp		REAL 	--seconds
+,	duration		REAL 	--seconds
 ,	resolved_at		INTEGER --unix timestamp
 ,	created_at		INTEGER --unix timestamp
 -- ,	updated_at		INTEGER --unix timestamp
