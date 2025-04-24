@@ -238,16 +238,6 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
 
       ProjectsService.linkFileToProject({ projectId, sha256, tag, path, fileName });
 
-      if (tag === "primary")
-        IssueService.createIssue({
-          userId: request.user.id,
-          projectId,
-          file: sha256,
-          description: `Automatically created test issue`,
-          timestamp: null,
-          duration: null,
-        });
-
       reply.status(200).send({ msg: "OK" });
     },
   });
