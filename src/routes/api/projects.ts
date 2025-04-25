@@ -238,6 +238,12 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
 
       ProjectsService.linkFileToProject({ projectId, sha256, tag, path, fileName });
 
+      if (tag === "gallery") {
+		// ! For testing purposes
+        ProjectsService.linkFileToProject({ projectId, sha256, tag: "avatar" });
+        ProjectsService.linkFileToProject({ projectId, sha256, tag: "wallpaper" });
+      }
+
       reply.status(200).send({ msg: "OK" });
     },
   });

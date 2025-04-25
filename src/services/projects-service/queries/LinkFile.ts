@@ -5,7 +5,7 @@ type ProjectFileAssociation = {
   sha256: string;
   tag: string;
   path?: string;
-  fileName: string;
+  fileName?: string;
 };
 
 type QueryParams = ProjectFileAssociation & {

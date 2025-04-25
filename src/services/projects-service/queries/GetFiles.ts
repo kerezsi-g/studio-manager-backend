@@ -19,7 +19,9 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	SELECT					
 		F.sha256				AS "sha256"
 	,	F.content_type			AS "contentType"
-	,	PF.file_name			AS "fileName"
+	,	COALESCE(
+			PF.file_name,
+			F.file_name )		AS "fileName"
 	,	PF.path					AS "path"
 	,	PF.tag					AS "tag"
 	,	PF.added_at				AS "addedAt"

@@ -70,7 +70,7 @@ export namespace FileService {
   /**
    * TODO: Authorization
    */
-  export async function getFileMetadata(sha256: string) {
+  export function getFileMetadata(sha256: string) {
     const entry = Queries.GetFileEntry({ sha256 });
 
     if (!entry) {

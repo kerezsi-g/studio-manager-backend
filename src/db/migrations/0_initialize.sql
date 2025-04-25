@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS t_project_files(
 	project_id		TEXT	NOT NULL
 ,	sha256			TEXT	NOT NULL
 ,	tag				TEXT	NOT NULL --primary deliverable, supplementary media, hidden, source file, etc...
-,	file_name		TEXT	NOT NULL
+,	file_name		TEXT
 ,	path			TEXT			 --potentially usable to create a virtual folder structure for a project
 ,	added_at		INTEGER NOT NULL --unix timestamp
 ,	PRIMARY KEY (project_id, sha256, tag)
@@ -145,6 +145,8 @@ SELECT
 ,	P.project_name
 ,	P.project_type
 ,	P.created_at
+,	P.avatar
+,	P.wallpaper
 FROM
 	t_projects P
 JOIN

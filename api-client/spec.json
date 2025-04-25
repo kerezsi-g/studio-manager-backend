@@ -157,6 +157,14 @@
             ],
             "title": "ProjectType"
           },
+          "avatar": {
+            "nullable": true,
+            "type": "string"
+          },
+          "wallpaper": {
+            "nullable": true,
+            "type": "string"
+          },
           "createdAt": {
             "type": "integer"
           },
@@ -177,6 +185,8 @@
           "projectId",
           "projectName",
           "projectType",
+          "avatar",
+          "wallpaper",
           "createdAt",
           "files",
           "issues"

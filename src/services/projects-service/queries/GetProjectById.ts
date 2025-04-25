@@ -10,6 +10,8 @@ type QueryResult = {
   projectName: string;
   projectType: ProjectType;
   createdAt: number;
+  avatar: string | null;
+  wallpaper: string | null;
 };
 
 const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
@@ -18,6 +20,8 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	,	project_name	AS "projectName"
 	,	project_type	AS "projectType"
 	,	created_at		AS "createdAt"
+	,	avatar			AS "avatar"	
+	,	wallpaper		AS "wallpaper"
 	FROM
 		t_projects
 	WHERE

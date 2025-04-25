@@ -5,6 +5,7 @@ import { UserData } from "schemas/UserData.type";
 
 import * as Queries from "./queries";
 import { FilePostprocessingService } from "services/file-postprocessing-service";
+import { FileService } from "services/file-service";
 
 export namespace ProjectsService {
   interface ProjectMember {
@@ -61,6 +62,8 @@ export namespace ProjectsService {
       projectName: project.projectName,
       projectType: project.projectType,
       createdAt: project.createdAt,
+      wallpaper: project.wallpaper,
+      avatar: project.avatar,
       files,
       issues,
     };
@@ -92,7 +95,7 @@ export namespace ProjectsService {
     sha256: string;
     tag: string;
     path?: string;
-    fileName: string;
+    fileName?: string;
   }
 
   export function getProjectFiles(projectId: string): ProjectMedia[] {
@@ -108,6 +111,26 @@ export namespace ProjectsService {
     path,
     fileName,
   }: LinkFileToProjectArgs) {
+    if (tag === "avatar" || tag === "wallpaper") {
+      const file = FileService.getFileMetadata(sha256);
+
+      const [contentType] = file.contentType.split("/");
+
+      if (contentType !== "image") {
+        throw new Error(`Invalid file type for operation: ${file.contentType}`);
+      }
+
+      if (tag === "avatar") {
+        Queries.SetAvatar({ projectId, sha256 });
+      }
+
+      if (tag === "wallpaper") {
+        Queries.SetWallpaper({ projectId, sha256 });
+      }
+
+      return;
+    }
+
     const result = Queries.LinkFileToProject({ projectId, sha256, tag, path, fileName });
 
     if (!result) {
