@@ -12,32 +12,41 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
 
   instance.get("/files/:sha256", {
     schema: {
+      hide: true,
       operationId: "getResource",
       tags: ["Files"],
       querystring: T.Object({
         preview: T.Optional(T.Boolean()),
-        noRedirect: T.Optional(T.Boolean()),
+        download: T.Optional(T.Boolean()),
       }),
       params: T.Object({
         sha256: T.String(),
       }),
-      response: {
-        200: T.Object({
-          url: T.String(),
-        }),
-      },
     },
     handler: async (request, reply) => {
       const { sha256 } = request.params;
-      const { preview, noRedirect } = request.query;
+      const { preview, download } = request.query;
+
+      /**
+       * ! Temporary solution until Bun supports presigning with custom headers
+       *
+       * @see https://github.com/oven-sh/bun/issues/17943
+       * @see https://github.com/nikeee/lean-s3/issues/5
+       */
+      if (download) {
+        const fileMeta = await FileService.getFileMetadata(sha256);
+        const stream = await FileService.getReadStream(sha256);
+
+        reply.type(fileMeta.contentType);
+        reply.header("content-disposition", `attachment; filename="${fileMeta.fileName}"`);
+        reply.send(stream);
+
+        return reply;
+      }
 
       const url = await FileService.getDownloadUrl(request.user.id, sha256, preview);
 
-      if (noRedirect) {
-        reply.status(200).send({ url });
-      } else {
-        reply.redirect(url, 302);
-      }
+      reply.redirect(url, 302);
 
       return reply;
     },

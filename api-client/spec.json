@@ -965,59 +965,6 @@
       }
     },
     "/files/{sha256}": {
-      "get": {
-        "operationId": "getResource",
-        "summary": "getResource",
-        "tags": [
-          "Files"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "boolean"
-            },
-            "in": "query",
-            "name": "preview",
-            "required": false
-          },
-          {
-            "schema": {
-              "type": "boolean"
-            },
-            "in": "query",
-            "name": "noRedirect",
-            "required": false
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "sha256",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "url": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "url"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      },
       "put": {
         "operationId": "createUploadUrl",
         "summary": "createUploadUrl",

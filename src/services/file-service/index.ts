@@ -111,4 +111,16 @@ export namespace FileService {
 
     return file;
   }
+
+  export async function getReadStream(sha256: string) {
+    const file = s3Client.file(sha256);
+
+    const exists = await file.exists();
+
+    if (!exists) {
+      throw new Error("File not found");
+    }
+
+    return file.stream();
+  }
 }
