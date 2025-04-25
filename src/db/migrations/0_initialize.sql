@@ -20,14 +20,55 @@ CREATE TABLE IF NOT EXISTS t_login_history(
 
 
 /**
+ * Dictionaries
+ */
+CREATE TABLE IF NOT EXISTS t_project_types(
+	project_type_id	TEXT NOT NULL
+,	PRIMARY KEY (project_type_id)
+);
+
+
+CREATE TABLE IF NOT EXISTS t_tags(
+	project_type_id	TEXT NOT NULL
+,	tag				TEXT NOT NULL
+,	PRIMARY KEY (project_type_id, tag)
+,	FOREIGN KEY (project_type_id) REFERENCES t_project_types(project_type_id)
+);
+
+-- Audio project
+INSERT INTO t_project_types (project_type_id) VALUES ('audio');
+INSERT INTO t_tags (project_type_id, tag) VALUES ('audio', 'delivery');
+INSERT INTO t_tags (project_type_id, tag) VALUES ('audio', 'bts');
+
+-- Video project
+INSERT INTO t_project_types (project_type_id) VALUES ('video');
+INSERT INTO t_tags (project_type_id, tag) VALUES ('video', 'delivery');
+INSERT INTO t_tags (project_type_id, tag) VALUES ('video', 'bts');
+
+
+-- Image gallery project
+INSERT INTO t_project_types (project_type_id) VALUES ('photography');
+INSERT INTO t_tags (project_type_id, tag) VALUES ('photography', 'unflagged');
+INSERT INTO t_tags (project_type_id, tag) VALUES ('photography', 'accepted');
+INSERT INTO t_tags (project_type_id, tag) VALUES ('photography', 'rejected');
+INSERT INTO t_tags (project_type_id, tag) VALUES ('photography', 'bts');
+
+
+
+/**
  * Core objects
  */
 CREATE TABLE IF NOT EXISTS t_projects(
 	project_id		TEXT	NOT NULL
 ,	project_name	TEXT	NOT NULL
 ,	project_type	TEXT	NOT NULL
-,	created_at		INTEGER --unix timestamp
+,	wallpaper		TEXT
+,	avatar			TEXT
+,	created_at		INTEGER --unix timestamp	
 ,	PRIMARY KEY (project_id)
+,	FOREIGN KEY (project_type) REFERENCES t_project_types(project_type_id)
+,	FOREIGN KEY (wallpaper) REFERENCES t_files(sha256)
+,	FOREIGN KEY (avatar) REFERENCES t_files(sha256)
 );
 
 CREATE TABLE IF NOT EXISTS t_project_members(
