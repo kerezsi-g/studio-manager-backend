@@ -1,4 +1,5 @@
 import { db } from "db";
+import { ProjectType } from "schemas/ProjectType.type";
 
 type QueryParams = {
   projectId: string;
@@ -7,7 +8,7 @@ type QueryParams = {
 type QueryResult = {
   projectId: string;
   projectName: string;
-  projectType: string;
+  projectType: ProjectType;
   createdAt: number;
 };
 

@@ -1,12 +1,11 @@
 import { db } from "db";
-import { StorageType } from "types/enums";
 
 type QueryParams = {
   sha256: string;
   fileName: string;
   contentType: string;
   createdAt: number;
-  storageType: StorageType;
+  uploadedAt: number;
 };
 
 type QueryResult = {
@@ -14,11 +13,12 @@ type QueryResult = {
   fileName: string;
   contentType: string;
   createdAt: number;
+  uploadedAt: number;
 };
 
 const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
-	INSERT INTO t_files (sha256, file_name, content_type, created_at, storage_type)
-	VALUES (@sha256, @fileName, @contentType, @createdAt, @storageType)
+	INSERT INTO t_files (sha256, file_name, content_type, created_at, uploaded_at)
+	VALUES (@sha256, @fileName, @contentType, @createdAt, @uploadedAt)
 	RETURNING sha256
 `);
 
@@ -26,15 +26,16 @@ type Args = {
   sha256: string;
   fileName: string;
   contentType: string;
+  createdAt: number;
 };
 
-export function CreateFileEntry({ sha256, fileName, contentType }: Args) {
+export function CreateFileEntry({ sha256, fileName, contentType, createdAt }: Args) {
   const bindParams: QueryParams = {
     sha256,
     fileName,
     contentType,
-    createdAt: Date.now(),
-    storageType: StorageType.Local,
+    createdAt,
+    uploadedAt: Date.now(),
   };
 
   sql.run(bindParams);

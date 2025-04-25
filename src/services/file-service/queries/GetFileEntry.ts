@@ -7,8 +7,8 @@ type QueryParams = {
 type QueryResult = {
   sha256: string;
   fileName: string;
-  storageType: string;
   contentType: string;
+  uploadedAt: number;
   createdAt: number;
 };
 
@@ -16,8 +16,8 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	SELECT
 		sha256			AS "sha256"
 	,	file_name		AS "fileName"
-	,	storage_type	AS "storageType"
 	,	content_type	AS "contentType"
+	,	uploaded_at		AS "uploadedAt"
 	,	created_at		AS "createdAt"
 	FROM
 		t_files

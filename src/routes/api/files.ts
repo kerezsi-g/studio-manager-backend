@@ -56,6 +56,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       querystring: T.Object({
         fileName: T.String(),
         contentType: T.String(),
+        createdAt: T.Integer(),
       }),
       response: {
         200: T.Object({
@@ -65,12 +66,13 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     },
     handler: async function (request, reply) {
       const { sha256 } = request.params;
-      const { fileName, contentType } = request.query;
+      const { fileName, contentType, createdAt } = request.query;
 
       const uploadUrl = await FileService.getUploadUrl({
         sha256,
         fileName,
         contentType,
+        createdAt,
       });
 
       return reply.status(200).send({ uploadUrl });
@@ -95,6 +97,25 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     },
     handler: (request, reply) => {
       throw new Error("Not implemented");
+    },
+  });
+
+  instance.get("/files/:sha256/metadata", {
+    schema: {
+      operationId: "getMetadata",
+      tags: ["Files"],
+      params: T.Object({
+        sha256: T.String(),
+      }),
+      response: {
+        200: T.Object({}),
+      },
+    },
+    preHandler: (request, reply) => {
+      FileService.authorize(request.user.id, request.params.sha256);
+    },
+    handler: (request, reply) => {
+      const metadata = FileService.getFileMetadata(request.params.sha256);
     },
   });
 };

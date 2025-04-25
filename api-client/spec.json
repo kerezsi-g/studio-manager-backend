@@ -76,6 +76,12 @@
           },
           "addedAt": {
             "type": "integer"
+          },
+          "uploadedAt": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "integer"
           }
         },
         "required": [
@@ -84,7 +90,9 @@
           "fileName",
           "path",
           "tag",
-          "addedAt"
+          "addedAt",
+          "uploadedAt",
+          "createdAt"
         ],
         "title": "ProjectMedia"
       },
@@ -1035,6 +1043,14 @@
           },
           {
             "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "createdAt",
+            "required": true
+          },
+          {
+            "schema": {
               "type": "string"
             },
             "in": "path",
@@ -1094,6 +1110,38 @@
                   "required": [
                     "msg"
                   ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/files/{sha256}/metadata": {
+      "get": {
+        "operationId": "getMetadata",
+        "summary": "getMetadata",
+        "tags": [
+          "Files"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "sha256",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
                 }
               }
             }

@@ -42,9 +42,9 @@ CREATE TABLE IF NOT EXISTS t_project_members(
 CREATE TABLE IF NOT EXISTS t_files(
 	sha256			TEXT	NOT NULL --sha256 hash of file
 ,	file_name		TEXT	NOT NULL --original filename at time of upload
-,	storage_type	TEXT	NOT NULL --s3 or local, unused for now
 ,	content_type	TEXT	NOT NULL --mime type
 ,	created_at		INTEGER	NOT NULL --unix timestamp
+,	uploaded_at		INTEGER	NOT NULL --unix timestamp
 ,	PRIMARY KEY (sha256)
 );
 

@@ -13,9 +13,10 @@ export namespace FileService {
     sha256: string;
     fileName: string;
     contentType: string;
+    createdAt: number;
   }
 
-  function validateAccess(userId: string, fileId: string) {
+  export function authorize(userId: string, fileId: string) {
     /**
      * TODO: implement
      */
@@ -32,7 +33,7 @@ export namespace FileService {
   }
 
   export async function getDownloadUrl(userId: string, sha256: string, preview: boolean = false) {
-    validateAccess(userId, sha256);
+    authorize(userId, sha256);
 
     const file = await getFileMetadata(sha256);
 
@@ -48,11 +49,12 @@ export namespace FileService {
     return publicUrl;
   }
 
-  export async function getUploadUrl({ sha256, fileName, contentType }: FileMeta) {
+  export async function getUploadUrl({ sha256, fileName, contentType, createdAt }: FileMeta) {
     const entry = Queries.CreateFileEntry({
       sha256,
       fileName,
       contentType,
+      createdAt,
     });
 
     const s3file = s3Client.file(sha256);
@@ -65,6 +67,9 @@ export namespace FileService {
     return publicUrl;
   }
 
+  /**
+   * TODO: Authorization
+   */
   export async function getFileMetadata(sha256: string) {
     const entry = Queries.GetFileEntry({ sha256 });
 
@@ -83,8 +88,6 @@ export namespace FileService {
   export async function getTemporaryLocalFile(sha256: string) {
     const s3file = s3Client.file(sha256);
 
-    logger.info(`Acquiring temporary local file ${sha256}...`);
-
     const file = Bun.file("temp/" + sha256);
     const sink = file.writer();
 
@@ -95,10 +98,12 @@ export namespace FileService {
 
     while (true) {
       const { done, value } = await reader.read();
+
       if (done) {
         await sink.end();
         break;
       }
+
       await sink.write(value);
     }
 

@@ -9,8 +9,10 @@ type QueryResult = {
   path: string;
   fileName: string;
   contentType: string;
-  addedAt: number;
   tag: string;
+  addedAt: number;
+  uploadedAt: number;
+  createdAt: number;
 };
 
 const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
@@ -21,6 +23,8 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	,	PF.path					AS "path"
 	,	PF.tag					AS "tag"
 	,	PF.added_at				AS "addedAt"
+	,	F.uploaded_at			AS "uploadedAt"
+	,	F.created_at			AS "createdAt"
 	FROM
 		t_project_files PF
 	JOIN
