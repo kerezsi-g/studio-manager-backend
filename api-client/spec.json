@@ -46,13 +46,18 @@
           },
           "createdAt": {
             "type": "integer"
+          },
+          "thumbnail": {
+            "nullable": true,
+            "type": "string"
           }
         },
         "required": [
           "projectId",
           "projectName",
           "projectType",
-          "createdAt"
+          "createdAt",
+          "thumbnail"
         ],
         "title": "Project"
       },
@@ -157,14 +162,6 @@
             ],
             "title": "ProjectType"
           },
-          "avatar": {
-            "nullable": true,
-            "type": "string"
-          },
-          "wallpaper": {
-            "nullable": true,
-            "type": "string"
-          },
           "createdAt": {
             "type": "integer"
           },
@@ -185,8 +182,6 @@
           "projectId",
           "projectName",
           "projectType",
-          "avatar",
-          "wallpaper",
           "createdAt",
           "files",
           "issues"
@@ -714,7 +709,7 @@
         }
       }
     },
-    "/projects/{projectId}/files/{sha256}": {
+    "/projects/{projectId}/files/{tag}/{sha256}": {
       "put": {
         "operationId": "addFileToProject",
         "summary": "addFileToProject",
@@ -722,14 +717,6 @@
           "Projects"
         ],
         "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "tag",
-            "required": true
-          },
           {
             "schema": {
               "type": "string"
@@ -744,7 +731,7 @@
             },
             "in": "query",
             "name": "fileName",
-            "required": true
+            "required": false
           },
           {
             "schema": {
@@ -752,6 +739,14 @@
             },
             "in": "path",
             "name": "projectId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "tag",
             "required": true
           },
           {
@@ -795,8 +790,8 @@
             "schema": {
               "type": "string"
             },
-            "in": "query",
-            "name": "tag",
+            "in": "path",
+            "name": "projectId",
             "required": true
           },
           {
@@ -804,7 +799,7 @@
               "type": "string"
             },
             "in": "path",
-            "name": "projectId",
+            "name": "tag",
             "required": true
           },
           {

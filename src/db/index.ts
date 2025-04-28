@@ -2,7 +2,7 @@ import { Database } from "bun:sqlite";
 
 import fs from "fs";
 
-const db = new Database(":memory:", {
+const db = new Database("app.db", {
   create: true,
   strict: true,
 });

@@ -62,8 +62,6 @@ export namespace ProjectsService {
       projectName: project.projectName,
       projectType: project.projectType,
       createdAt: project.createdAt,
-      wallpaper: project.wallpaper,
-      avatar: project.avatar,
       files,
       issues,
     };
@@ -111,7 +109,7 @@ export namespace ProjectsService {
     path,
     fileName,
   }: LinkFileToProjectArgs) {
-    if (tag === "avatar" || tag === "wallpaper") {
+    if (tag === "thumbnail" || tag === "background-image") {
       const file = FileService.getFileMetadata(sha256);
 
       const [contentType] = file.contentType.split("/");
@@ -120,15 +118,13 @@ export namespace ProjectsService {
         throw new Error(`Invalid file type for operation: ${file.contentType}`);
       }
 
-      if (tag === "avatar") {
-        Queries.SetAvatar({ projectId, sha256 });
-      }
+      const previousFiles = Queries.GetProjectFiles(projectId, tag);
 
-      if (tag === "wallpaper") {
-        Queries.SetWallpaper({ projectId, sha256 });
+      if (previousFiles.length > 0) {
+        for (const file of previousFiles) {
+          Queries.UnlinkFileFromProject({ projectId, sha256: file.sha256, tag });
+        }
       }
-
-      return;
     }
 
     const result = Queries.LinkFileToProject({ projectId, sha256, tag, path, fileName });

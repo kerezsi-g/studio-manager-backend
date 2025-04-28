@@ -20,8 +20,6 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	,	project_name	AS "projectName"
 	,	project_type	AS "projectType"
 	,	created_at		AS "createdAt"
-	,	avatar			AS "avatar"	
-	,	wallpaper		AS "wallpaper"
 	FROM
 		t_projects
 	WHERE

@@ -18,6 +18,7 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	,	project_name	AS "projectName"
 	,	project_type	AS "projectType"
 	,	created_at		AS "createdAt"
+	,	thumbnail		AS "thumbnail"
 	FROM
 		v_user_collection_projects
 	WHERE

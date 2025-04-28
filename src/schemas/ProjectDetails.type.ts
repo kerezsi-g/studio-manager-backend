@@ -10,11 +10,9 @@ export const ProjectDetails = T.Object(
     projectId: T.String(),
     projectName: T.String(),
     projectType: ProjectType,
-    avatar: T.Nullable(T.String()),
-    wallpaper: T.Nullable(T.String()),
     createdAt: T.Integer(),
     files: T.Array(T.SchemaRef(ProjectMedia)),
-    issues: T.Array(T.SchemaRef(Issue)),
+    issues: T.Array(T.SchemaRef(Issue))
   },
   { $id }
 );

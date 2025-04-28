@@ -28,30 +28,38 @@ CREATE TABLE IF NOT EXISTS t_project_types(
 );
 
 
-CREATE TABLE IF NOT EXISTS t_tags(
-	project_type_id	TEXT NOT NULL
-,	tag				TEXT NOT NULL
-,	PRIMARY KEY (project_type_id, tag)
-,	FOREIGN KEY (project_type_id) REFERENCES t_project_types(project_type_id)
-);
+INSERT INTO
+	t_project_types(project_type_id)
+VALUES
+	('audio'),
+	('video'),
+	('image');
+
+
+-- CREATE TABLE IF NOT EXISTS t_tags(
+-- 	project_type_id	TEXT NOT NULL
+-- ,	tag				TEXT NOT NULL
+-- ,	PRIMARY KEY (project_type_id, tag)
+-- ,	FOREIGN KEY (project_type_id) REFERENCES t_project_types(project_type_id)
+-- );
 
 -- Audio project
-INSERT INTO t_project_types (project_type_id) VALUES ('audio');
-INSERT INTO t_tags (project_type_id, tag) VALUES ('audio', 'delivery');
-INSERT INTO t_tags (project_type_id, tag) VALUES ('audio', 'bts');
+-- INSERT INTO t_project_types (project_type_id) VALUES ('audio');
+-- INSERT INTO t_tags (project_type_id, tag) VALUES ('audio', 'delivery');
+-- INSERT INTO t_tags (project_type_id, tag) VALUES ('audio', 'bts');
 
 -- Video project
-INSERT INTO t_project_types (project_type_id) VALUES ('video');
-INSERT INTO t_tags (project_type_id, tag) VALUES ('video', 'delivery');
-INSERT INTO t_tags (project_type_id, tag) VALUES ('video', 'bts');
+-- INSERT INTO t_project_types (project_type_id) VALUES ('video');
+-- INSERT INTO t_tags (project_type_id, tag) VALUES ('video', 'delivery');
+-- INSERT INTO t_tags (project_type_id, tag) VALUES ('video', 'bts');
 
 
 -- Image gallery project
-INSERT INTO t_project_types (project_type_id) VALUES ('photography');
-INSERT INTO t_tags (project_type_id, tag) VALUES ('photography', 'unflagged');
-INSERT INTO t_tags (project_type_id, tag) VALUES ('photography', 'accepted');
-INSERT INTO t_tags (project_type_id, tag) VALUES ('photography', 'rejected');
-INSERT INTO t_tags (project_type_id, tag) VALUES ('photography', 'bts');
+-- INSERT INTO t_project_types (project_type_id) VALUES ('photography');
+-- INSERT INTO t_tags (project_type_id, tag) VALUES ('photography', 'unflagged');
+-- INSERT INTO t_tags (project_type_id, tag) VALUES ('photography', 'accepted');
+-- INSERT INTO t_tags (project_type_id, tag) VALUES ('photography', 'rejected');
+-- INSERT INTO t_tags (project_type_id, tag) VALUES ('photography', 'bts');
 
 
 
@@ -62,13 +70,9 @@ CREATE TABLE IF NOT EXISTS t_projects(
 	project_id		TEXT	NOT NULL
 ,	project_name	TEXT	NOT NULL
 ,	project_type	TEXT	NOT NULL
-,	wallpaper		TEXT
-,	avatar			TEXT
 ,	created_at		INTEGER --unix timestamp	
 ,	PRIMARY KEY (project_id)
 ,	FOREIGN KEY (project_type) REFERENCES t_project_types(project_type_id)
-,	FOREIGN KEY (wallpaper) REFERENCES t_files(sha256)
-,	FOREIGN KEY (avatar) REFERENCES t_files(sha256)
 );
 
 CREATE TABLE IF NOT EXISTS t_project_members(
@@ -137,25 +141,41 @@ CREATE TABLE IF NOT EXISTS t_issues(
 
 
 
+CREATE VIEW IF NOT EXISTS
+	v_projects
+AS SELECT
+	P.*
+,	F1.sha256 AS "thumbnail"
+,	F2.sha256 AS "backgroundImage"
+FROM
+	t_projects P
+LEFT JOIN
+	t_project_files F1 ON (P.project_id = F1.project_id AND F1.tag = 'thumbnail')
+LEFT JOIN
+	t_project_files F2 ON (P.project_id = F2.project_id AND F2.tag = 'background-img');
 
-CREATE VIEW v_user_projects AS 
-SELECT
+
+
+CREATE VIEW IF NOT EXISTS
+	v_user_projects
+AS SELECT
 	PM.user_id
 ,	P.project_id
 ,	P.project_name
 ,	P.project_type
 ,	P.created_at
-,	P.avatar
-,	P.wallpaper
+,	P.thumbnail
+,	P.backgroundImage
 FROM
-	t_projects P
+	v_projects P
 JOIN
 	t_project_members PM ON	P.project_id = PM.project_id;
 
 
 
-CREATE VIEW v_user_collections AS 
-SELECT
+CREATE VIEW IF NOT EXISTS
+	v_user_collections
+AS SELECT
 	UP.user_id
 ,	P.collection_id
 ,	P.collection_name
@@ -171,14 +191,16 @@ JOIN
 GROUP BY
 	UP.user_id, P.collection_id, P.collection_name, P.created_at;
 
-CREATE VIEW v_user_collection_projects AS 
-SELECT
+CREATE VIEW IF NOT EXISTS 
+	v_user_collection_projects
+AS SELECT
 	UP.user_id	
 ,	CP.collection_id
 ,	UP.project_id
 ,	UP.project_name
 ,	UP.project_type
 ,	UP.created_at
+,	UP.thumbnail
 FROM
 	t_collection_projects CP
 JOIN

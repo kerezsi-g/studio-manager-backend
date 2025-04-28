@@ -7,7 +7,5 @@ export * from "./GetProjectById";
 export * from "./GetUserProjects";
 export * from "./LinkFile";
 export * from "./RemoveProjectMember";
-export * from "./SetAvatar";
-export * from "./SetWallpaper";
 export * from "./UnlinkFile";
 export * from "./UpdateProject";

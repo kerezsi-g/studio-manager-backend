@@ -8,6 +8,7 @@ export const Project = T.Object(
     projectName: T.String(),
     projectType: T.String(),
     createdAt: T.Integer(),
+    thumbnail: T.Nullable(T.String()),
   },
   { $id }
 );

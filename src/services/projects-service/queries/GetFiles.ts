@@ -2,6 +2,7 @@ import { db } from "db";
 
 type QueryParams = {
   projectId: string;
+  tag: string | null;
 };
 
 type QueryResult = {
@@ -33,13 +34,16 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 		t_files	F ON PF.sha256 = F.sha256
 	WHERE
 		PF.project_id = @projectId
+	AND
+		( @tag is NULL or PF.tag = @tag )
 	ORDER BY
 		F.created_at DESC
 `);
 
-export function GetProjectFiles(projectId: string) {
+export function GetProjectFiles(projectId: string, tag: string | null = null) {
   const bindParams: QueryParams = {
     projectId,
+    tag,
   };
 
   const result = sql.all(bindParams);

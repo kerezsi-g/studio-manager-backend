@@ -215,57 +215,48 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     },
   });
 
-  instance.put("/projects/:projectId/files/:sha256", {
+  instance.put("/projects/:projectId/files/:tag/:sha256", {
     schema: {
       tags: ["Projects"],
       operationId: "addFileToProject",
       params: T.Object({
         projectId: T.String(),
+        tag: T.String(),
         sha256: T.String(),
       }),
       querystring: T.Object({
-        tag: T.String(),
         path: T.Optional(T.String()),
-        fileName: T.String(),
+        fileName: T.Optional(T.String()),
       }),
       response: {
         200: MessageSchema,
       },
     },
     handler: (request, reply) => {
-      const { projectId, sha256 } = request.params;
-      const { tag, path, fileName } = request.query;
+      const { projectId, tag, sha256 } = request.params;
+      const { path, fileName } = request.query;
 
       ProjectsService.linkFileToProject({ projectId, sha256, tag, path, fileName });
-
-      if (tag === "gallery") {
-		// ! For testing purposes
-        ProjectsService.linkFileToProject({ projectId, sha256, tag: "avatar" });
-        ProjectsService.linkFileToProject({ projectId, sha256, tag: "wallpaper" });
-      }
 
       reply.status(200).send({ msg: "OK" });
     },
   });
 
-  instance.delete("/projects/:projectId/files/:sha256", {
+  instance.delete("/projects/:projectId/files/:tag/:sha256", {
     schema: {
       tags: ["Projects"],
       operationId: "removeFileFromProject",
       params: T.Object({
         projectId: T.String(),
-        sha256: T.String(),
-      }),
-      querystring: T.Object({
         tag: T.String(),
+        sha256: T.String(),
       }),
       response: {
         200: MessageSchema,
       },
     },
     handler: (request, reply) => {
-      const { projectId, sha256 } = request.params;
-      const { tag } = request.query;
+      const { projectId, tag, sha256 } = request.params;
 
       ProjectsService.unlinkFileFromProject({ projectId, sha256, tag });
 

@@ -20,6 +20,9 @@ dist-npm
 coverage
 *.local
 
+# SQLite database
+app.db
+
 
 # Application config
 config/*
