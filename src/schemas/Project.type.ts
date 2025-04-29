@@ -7,6 +7,7 @@ export const Project = T.Object(
     projectId: T.String(),
     projectName: T.String(),
     projectType: T.String(),
+    subject: T.String(),
     createdAt: T.Integer(),
     thumbnail: T.Nullable(T.String()),
   },

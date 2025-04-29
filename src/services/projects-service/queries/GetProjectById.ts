@@ -9,6 +9,7 @@ type QueryResult = {
   projectId: string;
   projectName: string;
   projectType: ProjectType;
+  subject: string;
   createdAt: number;
   avatar: string | null;
   wallpaper: string | null;
@@ -19,6 +20,7 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 		project_id		AS "projectId"
 	,	project_name	AS "projectName"
 	,	project_type	AS "projectType"
+	,	subject			AS "subject"
 	,	created_at		AS "createdAt"
 	FROM
 		t_projects

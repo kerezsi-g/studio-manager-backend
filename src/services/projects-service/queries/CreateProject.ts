@@ -6,6 +6,7 @@ type QueryParams = {
   projectType: string;
   projectId: string;
   createdAt: number;
+  subject: string;
 };
 
 type QueryResult = {
@@ -14,9 +15,9 @@ type QueryResult = {
 
 const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	INSERT INTO
-		t_projects (project_id, project_name, project_type, created_at)
+		t_projects (project_id, project_name, project_type, subject, created_at)
 	VALUES
-		(@projectId, @projectName, @projectType, @createdAt)
+		(@projectId, @projectName, @projectType, @subject, @createdAt)
 	RETURNING
 		project_id as projectId
 `);
@@ -24,12 +25,14 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 export interface CreateProjectArgs {
   projectName: string;
   projectType: string;
+  subject: string;
 }
 
-export function CreateProject({ projectName, projectType }: CreateProjectArgs) {
+export function CreateProject({ projectName, projectType, subject }: CreateProjectArgs) {
   const bindParams: QueryParams = {
     projectName,
     projectType,
+    subject,
     projectId: generateUuid(),
     createdAt: Date.now(),
   };

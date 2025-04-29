@@ -62,6 +62,7 @@ export namespace ProjectsService {
       projectName: project.projectName,
       projectType: project.projectType,
       createdAt: project.createdAt,
+      subject: project.subject,
       files,
       issues,
     };

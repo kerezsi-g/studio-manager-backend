@@ -48,15 +48,16 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       body: T.Object({
         projectName: T.String(),
         projectType: T.String(),
+        subject: T.String(),
       }),
       response: {
         200: ProjectIdSchema,
       },
     },
     handler: (request, reply) => {
-      const { projectName, projectType } = request.body;
+      const { projectName, projectType, subject } = request.body;
 
-      const project = ProjectsService.createProject({ projectName, projectType });
+      const project = ProjectsService.createProject({ projectName, projectType, subject });
 
       /**
        * Auto-add user to project members

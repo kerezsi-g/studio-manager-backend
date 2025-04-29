@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS t_projects(
 	project_id		TEXT	NOT NULL
 ,	project_name	TEXT	NOT NULL
 ,	project_type	TEXT	NOT NULL
+,	subject			TEXT	NOT NULL
 ,	created_at		INTEGER --unix timestamp	
 ,	PRIMARY KEY (project_id)
 ,	FOREIGN KEY (project_type) REFERENCES t_project_types(project_type_id)
@@ -161,12 +162,7 @@ CREATE VIEW IF NOT EXISTS
 	v_user_projects
 AS SELECT
 	PM.user_id
-,	P.project_id
-,	P.project_name
-,	P.project_type
-,	P.created_at
-,	P.thumbnail
-,	P.backgroundImage
+,	P.*
 FROM
 	v_projects P
 JOIN
@@ -195,13 +191,8 @@ GROUP BY
 CREATE VIEW IF NOT EXISTS 
 	v_user_collection_projects
 AS SELECT
-	UP.user_id	
-,	CP.collection_id
-,	UP.project_id
-,	UP.project_name
-,	UP.project_type
-,	UP.created_at
-,	UP.thumbnail
+	CP.collection_id
+,	UP.*
 FROM
 	t_collection_projects CP
 JOIN
