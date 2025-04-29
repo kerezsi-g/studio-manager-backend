@@ -12,6 +12,7 @@ export const ProjectMedia = T.Object(
     addedAt: T.Integer(),
     uploadedAt: T.Integer(),
     createdAt: T.Integer(),
+    size: T.Integer(),
   },
   { $id }
 );

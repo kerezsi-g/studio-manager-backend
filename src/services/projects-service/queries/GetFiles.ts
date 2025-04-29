@@ -10,6 +10,7 @@ type QueryResult = {
   path: string;
   fileName: string;
   contentType: string;
+  size: number;
   tag: string;
   addedAt: number;
   uploadedAt: number;
@@ -23,6 +24,7 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	,	COALESCE(
 			PF.file_name,
 			F.file_name )		AS "fileName"
+	,	F.size					AS "size"
 	,	PF.path					AS "path"
 	,	PF.tag					AS "tag"
 	,	PF.added_at				AS "addedAt"

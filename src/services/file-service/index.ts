@@ -13,6 +13,7 @@ export namespace FileService {
     sha256: string;
     fileName: string;
     contentType: string;
+    // size: number;
     createdAt: number;
   }
 
@@ -79,6 +80,7 @@ export namespace FileService {
 
     return entry;
   }
+
   export async function uploadMedia(file: Bun.BunFile, fileName: string, contentType: string) {
     await s3Client.file(fileName).write(file, {
       type: contentType,
@@ -122,5 +124,32 @@ export namespace FileService {
     }
 
     return file.stream();
+  }
+
+  /**
+   * Updates the file size in the database
+   */
+  export async function validate(sha256: string) {
+    const entry = Queries.GetFileEntry({ sha256 });
+
+    if (!entry) {
+      throw new Error("File not found");
+    }
+
+    const stat = await s3Client.file(sha256).stat();
+
+    console.log(stat);
+
+    Queries.UpdateFileEntry({ sha256, size: stat.size });
+  }
+
+  export async function checkIntegrity() {
+    const files = await s3Client.list();
+
+    if (!files.contents) {
+      return;
+    }
+
+    throw "Not implemented";
   }
 }

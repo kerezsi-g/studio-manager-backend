@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS t_files(
 	sha256			TEXT	NOT NULL --sha256 hash of file
 ,	file_name		TEXT	NOT NULL --original filename at time of upload
 ,	content_type	TEXT	NOT NULL --mime type
+,	size			INTEGER
 ,	created_at		INTEGER	NOT NULL --unix timestamp
 ,	uploaded_at		INTEGER	NOT NULL --unix timestamp
 ,	PRIMARY KEY (sha256)

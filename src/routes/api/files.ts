@@ -52,6 +52,34 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     },
   });
 
+  /**
+   * ! Temporary solution to load file size from S3 into local db
+   */
+  instance.patch("/files/:sha256", {
+    config: {
+      adminOnly: true,
+    },
+    schema: {
+      tags: ["Files"],
+      operationId: "validateFile",
+      params: T.Object({
+        sha256: T.String(),
+      }),
+      response: {
+        200: T.Object({
+          msg: T.String(),
+        }),
+      },
+    },
+    handler: async (request, reply) => {
+      const { sha256 } = request.params;
+
+      await FileService.validate(sha256);
+
+      return reply.status(200).send({ msg: "File is valid" });
+    },
+  });
+
   instance.put("/files/:sha256", {
     config: {
       adminOnly: true,
