@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS t_users(
 ,	name			TEXT
 ,	created_at		INTEGER --unix timestamp
 ,	PRIMARY KEY (user_id)
+,	UNIQUE (email)
 );
 
 

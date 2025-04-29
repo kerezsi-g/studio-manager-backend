@@ -53,4 +53,12 @@ const DEBUG_USER = {
   name: "test",
 };
 
-await UserService.createUser(DEBUG_USER);
+function insertDebugUser() {
+  try {
+    UserService.authenticate(DEBUG_USER);
+  } catch {
+    UserService.createUser(DEBUG_USER);
+  }
+}
+
+insertDebugUser();
