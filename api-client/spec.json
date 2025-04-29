@@ -44,6 +44,9 @@
           "projectType": {
             "type": "string"
           },
+          "subject": {
+            "type": "string"
+          },
           "createdAt": {
             "type": "integer"
           },
@@ -56,6 +59,7 @@
           "projectId",
           "projectName",
           "projectType",
+          "subject",
           "createdAt",
           "thumbnail"
         ],
@@ -87,6 +91,9 @@
           },
           "createdAt": {
             "type": "integer"
+          },
+          "size": {
+            "type": "integer"
           }
         },
         "required": [
@@ -97,7 +104,8 @@
           "tag",
           "addedAt",
           "uploadedAt",
-          "createdAt"
+          "createdAt",
+          "size"
         ],
         "title": "ProjectMedia"
       },
@@ -162,6 +170,9 @@
             ],
             "title": "ProjectType"
           },
+          "subject": {
+            "type": "string"
+          },
           "createdAt": {
             "type": "integer"
           },
@@ -182,6 +193,7 @@
           "projectId",
           "projectName",
           "projectType",
+          "subject",
           "createdAt",
           "files",
           "issues"
@@ -403,11 +415,15 @@
                   },
                   "projectType": {
                     "type": "string"
+                  },
+                  "subject": {
+                    "type": "string"
                   }
                 },
                 "required": [
                   "projectName",
-                  "projectType"
+                  "projectType",
+                  "subject"
                 ]
               }
             }
@@ -970,6 +986,43 @@
       }
     },
     "/files/{sha256}": {
+      "patch": {
+        "operationId": "validateFile",
+        "summary": "validateFile",
+        "tags": [
+          "Files"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "sha256",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "msg"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
       "put": {
         "operationId": "createUploadUrl",
         "summary": "createUploadUrl",
