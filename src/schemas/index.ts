@@ -1,4 +1,5 @@
 export * from "./AssetType.type";
+export * from "./AssetTag.type";
 export * from "./AudioPeaks.type";
 export * from "./Collection.type";
 export * from "./FileStatus.type";

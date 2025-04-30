@@ -2,13 +2,9 @@ import { Type as T } from "utils/typebox-openapi";
 import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 
 import { authenticate } from "server/hooks/auth";
-import { Project } from "schemas/Project.type";
-import { UserData } from "schemas/UserData.type";
-import { ProjectDetails } from "schemas/ProjectDetails.type";
 
 import { ProjectsService, IssueService } from "services";
-import { ProjectAsset } from "schemas/ProjectAsset";
-import { Issue } from "schemas/Issue.type";
+import { Issue, AssetTag, ProjectAsset, UserData, Project, ProjectDetails } from "schemas";
 
 const ProjectIdSchema = T.Object({
   projectId: T.String(),
@@ -21,11 +17,12 @@ const MessageSchema = T.Object({
 const plugin: FastifyPluginAsyncTypebox = async function (instance) {
   instance.addHook("onRequest", authenticate);
 
-  instance.addSchema(Project);
-  instance.addSchema(ProjectAsset);
-  instance.addSchema(Issue);
-  instance.addSchema(ProjectDetails);
+  instance.addSchema(AssetTag);
   instance.addSchema(UserData);
+  instance.addSchema(Project);
+  instance.addSchema(ProjectDetails);
+  instance.addSchema(Issue);
+  instance.addSchema(ProjectAsset);
 
   instance.get("/projects", {
     schema: {
@@ -59,9 +56,6 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
 
       const project = ProjectsService.createProject({ projectName, projectType, subject });
 
-      /**
-       * Auto-add user to project members
-       */
       ProjectsService.addProjectMember({ projectId: project.projectId, userId: request.user.id });
 
       reply.status(200).send({ projectId: project.projectId });
@@ -270,21 +264,24 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     },
   });
 
-  instance.put("/projects/:projectId/assets/:tag/:assetId", {
+  instance.put("/projects/:projectId/assets/:assetId", {
     schema: {
       operationId: "addAssetToProject",
       tags: ["Projects"],
       params: T.Object({
         projectId: T.String(),
         assetId: T.String(),
-        tag: T.String(),
+      }),
+      querystring: T.Object({
+        tag: AssetTag,
       }),
       response: {
         200: MessageSchema,
       },
     },
     handler: (request, reply) => {
-      const { projectId, assetId, tag } = request.params;
+      const { projectId, assetId } = request.params;
+      const { tag } = request.query;
 
       ProjectsService.addAssetToProject({ projectId, assetId, tag });
 
@@ -292,21 +289,24 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     },
   });
 
-  instance.delete("/projects/:projectId/assets/:tag/:assetId", {
+  instance.delete("/projects/:projectId/assets/:assetId", {
     schema: {
       operationId: "removeAssetFromProject",
       tags: ["Projects"],
       params: T.Object({
         projectId: T.String(),
         assetId: T.String(),
-        tag: T.String(),
+      }),
+      querystring: T.Object({
+        tag: AssetTag,
       }),
       response: {
         200: MessageSchema,
       },
     },
     handler: (request, reply) => {
-      const { projectId, assetId, tag } = request.params;
+      const { projectId, assetId } = request.params;
+      const { tag } = request.query;
 
       ProjectsService.removeAssetFromProject({ projectId, assetId, tag });
 
@@ -332,7 +332,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
         projectId: T.String(),
       }),
       body: T.Object({
-        file: T.String(),
+        assetId: T.String(),
         description: T.String(),
         timestamp: T.Optional(T.Number()),
         duration: T.Optional(T.Number()),
@@ -345,11 +345,11 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     },
     handler: (request, reply) => {
       const { projectId } = request.params;
-      const { description, timestamp = null, duration = null, file } = request.body;
+      const { description, timestamp = null, duration = null, assetId } = request.body;
 
       const issueId = IssueService.createIssue({
         userId: request.user.id,
-        file,
+        assetId,
         projectId,
         description,
         timestamp,

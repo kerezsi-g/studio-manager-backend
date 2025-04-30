@@ -1,9 +1,10 @@
 import { db } from "db";
+import { AssetTag } from "schemas";
 
 export type ProjectAssetSelector = {
   projectId: string;
   assetId: string;
-  tag: string;
+  tag: AssetTag;
 };
 
 type QueryParams = ProjectAssetSelector & {

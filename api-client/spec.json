@@ -32,6 +32,15 @@
         ],
         "title": "UserData"
       },
+      "AssetTag": {
+        "enum": [
+          "accepted",
+          "rejected",
+          "pending-review",
+          "misc"
+        ],
+        "title": "AssetTag"
+      },
       "Project": {
         "type": "object",
         "properties": {
@@ -64,89 +73,6 @@
           "thumbnail"
         ],
         "title": "Project"
-      },
-      "ProjectAsset": {
-        "type": "object",
-        "properties": {
-          "assetId": {
-            "type": "string"
-          },
-          "assetName": {
-            "type": "string"
-          },
-          "tag": {
-            "type": "string"
-          },
-          "addedAt": {
-            "type": "integer"
-          },
-          "uploadedAt": {
-            "type": "integer"
-          },
-          "createdAt": {
-            "type": "integer"
-          },
-          "contentType": {
-            "type": "string"
-          },
-          "size": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "assetId",
-          "assetName",
-          "tag",
-          "addedAt",
-          "uploadedAt",
-          "createdAt",
-          "contentType",
-          "size"
-        ],
-        "title": "ProjectAsset"
-      },
-      "Issue": {
-        "type": "object",
-        "properties": {
-          "issueId": {
-            "type": "string"
-          },
-          "assetId": {
-            "type": "string"
-          },
-          "userId": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "timestamp": {
-            "nullable": true,
-            "type": "number"
-          },
-          "duration": {
-            "nullable": true,
-            "type": "number"
-          },
-          "createdAt": {
-            "type": "integer"
-          },
-          "resolvedAt": {
-            "nullable": true,
-            "type": "integer"
-          }
-        },
-        "required": [
-          "issueId",
-          "assetId",
-          "userId",
-          "description",
-          "timestamp",
-          "duration",
-          "createdAt",
-          "resolvedAt"
-        ],
-        "title": "Issue"
       },
       "ProjectDetails": {
         "type": "object",
@@ -202,6 +128,89 @@
           "image"
         ],
         "title": "ProjectType"
+      },
+      "Issue": {
+        "type": "object",
+        "properties": {
+          "issueId": {
+            "type": "string"
+          },
+          "assetId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "timestamp": {
+            "nullable": true,
+            "type": "number"
+          },
+          "duration": {
+            "nullable": true,
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "integer"
+          },
+          "resolvedAt": {
+            "nullable": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "issueId",
+          "assetId",
+          "userId",
+          "description",
+          "timestamp",
+          "duration",
+          "createdAt",
+          "resolvedAt"
+        ],
+        "title": "Issue"
+      },
+      "ProjectAsset": {
+        "type": "object",
+        "properties": {
+          "assetId": {
+            "type": "string"
+          },
+          "assetName": {
+            "type": "string"
+          },
+          "tag": {
+            "$ref": "#/components/schemas/AssetTag"
+          },
+          "addedAt": {
+            "type": "integer"
+          },
+          "uploadedAt": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "integer"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "assetId",
+          "assetName",
+          "tag",
+          "addedAt",
+          "uploadedAt",
+          "createdAt",
+          "contentType",
+          "size"
+        ],
+        "title": "ProjectAsset"
       },
       "AudioPeaks": {
         "type": "object",
@@ -855,7 +864,7 @@
         }
       }
     },
-    "/projects/{projectId}/assets/{tag}/{assetId}": {
+    "/projects/{projectId}/assets/{assetId}": {
       "put": {
         "operationId": "addAssetToProject",
         "summary": "addAssetToProject",
@@ -863,6 +872,19 @@
           "Projects"
         ],
         "parameters": [
+          {
+            "schema": {
+              "enum": [
+                "accepted",
+                "rejected",
+                "pending-review",
+                "misc"
+              ]
+            },
+            "in": "query",
+            "name": "tag",
+            "required": true
+          },
           {
             "schema": {
               "type": "string"
@@ -877,14 +899,6 @@
             },
             "in": "path",
             "name": "assetId",
-            "required": true
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "tag",
             "required": true
           }
         ],
@@ -918,6 +932,19 @@
         "parameters": [
           {
             "schema": {
+              "enum": [
+                "accepted",
+                "rejected",
+                "pending-review",
+                "misc"
+              ]
+            },
+            "in": "query",
+            "name": "tag",
+            "required": true
+          },
+          {
+            "schema": {
               "type": "string"
             },
             "in": "path",
@@ -930,14 +957,6 @@
             },
             "in": "path",
             "name": "assetId",
-            "required": true
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "tag",
             "required": true
           }
         ],
@@ -998,7 +1017,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "file": {
+                  "assetId": {
                     "type": "string"
                   },
                   "description": {
@@ -1012,7 +1031,7 @@
                   }
                 },
                 "required": [
-                  "file",
+                  "assetId",
                   "description"
                 ]
               }
