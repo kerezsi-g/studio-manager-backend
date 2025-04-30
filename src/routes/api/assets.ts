@@ -20,7 +20,9 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       body: T.Object({
         assetName: T.String(),
         assetType: AssetTypeSchema,
-      }),
+      }, {
+		title: "CreateAssetRequest"
+	  }),
       response: {
         200: T.Object({
           assetId: T.String(),

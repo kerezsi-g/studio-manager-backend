@@ -45,7 +45,9 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       tags: ["Collections"],
       body: T.Object({
         collectionName: T.String(),
-      }),
+      }, {
+		title: "CreateCollectionRequest"
+	  }),
       response: {
         200: CollectionIdSchema,
       },
@@ -68,7 +70,9 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       }),
       body: T.Object({
         collectionName: T.String(),
-      }),
+      }, {
+		title: "UpdateCollectionRequest"
+	  }),
       response: {
         200: MessageSchema,
       },

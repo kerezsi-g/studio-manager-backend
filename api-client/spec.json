@@ -420,6 +420,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "title": "CreateProjectRequest",
                 "type": "object",
                 "properties": {
                   "projectName": {
@@ -475,19 +476,19 @@
           "content": {
             "application/json": {
               "schema": {
+                "title": "UpdateProjectRequest",
                 "type": "object",
                 "properties": {
                   "projectName": {
                     "type": "string"
+                  },
+                  "subject": {
+                    "type": "string"
                   }
-                },
-                "required": [
-                  "projectName"
-                ]
+                }
               }
             }
-          },
-          "required": true
+          }
         },
         "parameters": [
           {
@@ -1015,6 +1016,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "title": "CreateIssueRequest",
                 "type": "object",
                 "properties": {
                   "assetId": {
@@ -1320,6 +1322,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "title": "CreateCollectionRequest",
                 "type": "object",
                 "properties": {
                   "collectionName": {
@@ -1367,6 +1370,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "title": "UpdateCollectionRequest",
                 "type": "object",
                 "properties": {
                   "collectionName": {
@@ -1550,6 +1554,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "title": "CreateAssetRequest",
                 "type": "object",
                 "properties": {
                   "assetName": {

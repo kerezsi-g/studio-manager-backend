@@ -24,7 +24,6 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
           password: T.String(),
         },
         {
-          $id: "authParams",
           title: "authParams",
         }
       ),
@@ -71,6 +70,10 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     },
     handler: async (request, reply) => {
       const user = UserService.getUserById(request.user.id);
+
+      if (!user) {
+        return reply.status(404).send();
+      }
 
       reply.status(200).send(user);
     },

@@ -42,11 +42,14 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     schema: {
       operationId: "createProject",
       tags: ["Projects"],
-      body: T.Object({
-        projectName: T.String(),
-        projectType: T.String(),
-        subject: T.String(),
-      }),
+      body: T.Object(
+        {
+          projectName: T.String(),
+          projectType: T.String(),
+          subject: T.String(),
+        },
+        { title: "CreateProjectRequest" }
+      ),
       response: {
         200: ProjectIdSchema,
       },
@@ -69,10 +72,15 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       params: T.Object({
         projectId: T.String(),
       }),
-      body: T.Object({
-        projectName: T.String(),
-        // projectType: T.String(),
-      }),
+      body: T.Object(
+        {
+          projectName: T.Optional(T.String()),
+          subject: T.Optional(T.String()),
+        },
+        {
+          title: "UpdateProjectRequest",
+        }
+      ),
       response: {
         200: ProjectIdSchema,
       },
@@ -331,12 +339,17 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       params: T.Object({
         projectId: T.String(),
       }),
-      body: T.Object({
-        assetId: T.String(),
-        description: T.String(),
-        timestamp: T.Optional(T.Number()),
-        duration: T.Optional(T.Number()),
-      }),
+      body: T.Object(
+        {
+          assetId: T.String(),
+          description: T.String(),
+          timestamp: T.Optional(T.Number()),
+          duration: T.Optional(T.Number()),
+        },
+        {
+          title: "CreateIssueRequest",
+        }
+      ),
       response: {
         200: T.Object({
           issueId: T.String(),
