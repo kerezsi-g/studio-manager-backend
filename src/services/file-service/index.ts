@@ -8,6 +8,9 @@ const logger = new Logger("FileService");
 
 const s3Client = new S3Client(config.s3);
 
+/**
+ * @deprecated
+ */
 export namespace FileService {
   interface FileMeta {
     sha256: string;
@@ -50,6 +53,9 @@ export namespace FileService {
     return publicUrl;
   }
 
+  /**
+   * @deprecated
+   */
   export async function getUploadUrl({ sha256, fileName, contentType, createdAt }: FileMeta) {
     const entry = Queries.CreateFileEntry({
       sha256,
@@ -81,12 +87,18 @@ export namespace FileService {
     return entry;
   }
 
+  /**
+   * @deprecated
+   */
   export async function uploadMedia(file: Bun.BunFile, fileName: string, contentType: string) {
     await s3Client.file(fileName).write(file, {
       type: contentType,
     });
   }
 
+  /**
+   * @deprecated
+   */
   export async function getTemporaryLocalFile(sha256: string) {
     const s3file = s3Client.file(sha256);
 
@@ -114,6 +126,9 @@ export namespace FileService {
     return file;
   }
 
+  /**
+   * @deprecated
+   */
   export async function getReadStream(sha256: string) {
     const file = s3Client.file(sha256);
 
@@ -127,6 +142,7 @@ export namespace FileService {
   }
 
   /**
+   * @deprecated
    * Updates the file size in the database
    */
   export async function validate(sha256: string) {
@@ -143,6 +159,9 @@ export namespace FileService {
     Queries.UpdateFileEntry({ sha256, size: stat.size });
   }
 
+  /**
+   * @deprecated
+   */
   export async function checkIntegrity() {
     const files = await s3Client.list();
 

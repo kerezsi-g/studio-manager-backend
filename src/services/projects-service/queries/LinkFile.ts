@@ -25,6 +25,7 @@ const sql = db.query<ProjectFileAssociation, QueryParams>(/*sql*/ `
 		file_name		AS "fileName"
 `);
 
+/** @deprecated */
 export function LinkFileToProject({
   projectId,
   sha256,

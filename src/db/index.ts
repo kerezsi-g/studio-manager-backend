@@ -2,7 +2,7 @@ import { Database } from "bun:sqlite";
 
 import fs from "fs";
 
-const db = new Database("app.db", {
+const db = new Database(":memory:", {
   create: true,
   strict: true,
 });
@@ -15,3 +15,5 @@ const sql = fs.readFileSync("src/db/migrations/0_initialize.sql", "utf8");
 db.run(sql);
 
 export { db };
+
+

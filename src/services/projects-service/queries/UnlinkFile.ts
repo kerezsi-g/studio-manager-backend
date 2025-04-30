@@ -24,7 +24,7 @@ interface Args {
   sha256: string;
   tag: string;
 }
-
+/** @deprecated */
 export function UnlinkFileFromProject({ projectId, sha256, tag }: Args) {
   const bindParams: QueryParams = {
     projectId,

@@ -1,11 +1,12 @@
 import { ProjectDetails } from "schemas/ProjectDetails.type";
-import { ProjectMedia } from "schemas/ProjectMedia.type";
+import { ProjectAsset } from "schemas/ProjectAsset";
 import { Project } from "schemas/Project.type";
 import { UserData } from "schemas/UserData.type";
 
 import * as Queries from "./queries";
-import { FilePostprocessingService } from "services/file-postprocessing-service";
+import { FileGenerationService } from "services/file-generation-service";
 import { FileService } from "services/file-service";
+import { ProjectAssetSelector } from "./queries/AddAssetToProject";
 
 export namespace ProjectsService {
   interface ProjectMember {
@@ -19,8 +20,8 @@ export namespace ProjectsService {
      */
   }
 
-  export function createProject({ projectName, projectType }: Queries.CreateProjectArgs) {
-    const result = Queries.CreateProject({ projectName, projectType });
+  export function createProject({ projectName, projectType, subject }: Queries.CreateProjectArgs) {
+    const result = Queries.CreateProject({ projectName, projectType, subject });
 
     if (!result) {
       throw new Error("Failed to create project");
@@ -29,8 +30,8 @@ export namespace ProjectsService {
     return result;
   }
 
-  export function updateProject({ projectId, projectName }: Queries.UpdateProjectArgs) {
-    const result = Queries.UpdateProject({ projectId, projectName });
+  export function updateProject({ projectId, projectName, subject }: Queries.UpdateProjectArgs) {
+    const result = Queries.UpdateProject({ projectId, projectName, subject });
 
     if (!result) {
       throw new Error("Failed to update project");
@@ -54,7 +55,7 @@ export namespace ProjectsService {
       throw new Error("Project not found");
     }
 
-    const files = Queries.GetProjectFiles(projectId);
+    const assets = Queries.GetProjectAssets(projectId);
     const issues = Queries.GetProjectIssues(projectId);
 
     return {
@@ -63,7 +64,7 @@ export namespace ProjectsService {
       projectType: project.projectType,
       createdAt: project.createdAt,
       subject: project.subject,
-      files,
+      assets,
       issues,
     };
   }
@@ -97,12 +98,33 @@ export namespace ProjectsService {
     fileName?: string;
   }
 
-  export function getProjectFiles(projectId: string): ProjectMedia[] {
-    const results = Queries.GetProjectFiles(projectId);
+  export function getProjectFiles(projectId: string): ProjectAsset[] {
+    const results = Queries.GetProjectAssets(projectId);
 
     return results;
   }
 
+  export function addAssetToProject({ projectId, assetId, tag }: ProjectAssetSelector) {
+    const result = Queries.AddAssetToProject({ projectId, assetId, tag });
+
+    if (!result) {
+      throw new Error("Failed to add asset to project");
+    }
+
+    return result;
+  }
+
+  export function removeAssetFromProject({ projectId, assetId, tag }: ProjectAssetSelector) {
+    const result = Queries.RemoveAssetFromProject({ projectId, assetId, tag });
+
+    if (!result) {
+      throw new Error("Failed to remove asset from project");
+    }
+
+    return result;
+  }
+
+  /** @deprecated */
   export function linkFileToProject({
     projectId,
     sha256,
@@ -110,41 +132,15 @@ export namespace ProjectsService {
     path,
     fileName,
   }: LinkFileToProjectArgs) {
-    if (tag === "thumbnail" || tag === "background-image") {
-      const file = FileService.getFileMetadata(sha256);
-
-      const [contentType] = file.contentType.split("/");
-
-      if (contentType !== "image") {
-        throw new Error(`Invalid file type for operation: ${file.contentType}`);
-      }
-
-      const previousFiles = Queries.GetProjectFiles(projectId, tag);
-
-      if (previousFiles.length > 0) {
-        for (const file of previousFiles) {
-          Queries.UnlinkFileFromProject({ projectId, sha256: file.sha256, tag });
-        }
-      }
-    }
-
-    const result = Queries.LinkFileToProject({ projectId, sha256, tag, path, fileName });
-
-    if (!result) {
-      throw new Error("Failed to link file to project");
-    }
-
-    FilePostprocessingService.process(sha256);
-
-    return result;
+    throw "Not implemented";
   }
 
+  /** @deprecated */
   export function unlinkFileFromProject({
     projectId,
     sha256,
     tag,
-  }: Omit<LinkFileToProjectArgs, "path" | "fileName">) {
-    // Nothing else to do here
+  }: Omit<LinkFileToProjectArgs, "path" | "fileName">) {    
     Queries.UnlinkFileFromProject({ projectId, sha256, tag });
   }
 }

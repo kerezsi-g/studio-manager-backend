@@ -65,19 +65,13 @@
         ],
         "title": "Project"
       },
-      "ProjectMedia": {
+      "ProjectAsset": {
         "type": "object",
         "properties": {
-          "sha256": {
+          "assetId": {
             "type": "string"
           },
-          "contentType": {
-            "type": "string"
-          },
-          "fileName": {
-            "type": "string"
-          },
-          "path": {
+          "assetName": {
             "type": "string"
           },
           "tag": {
@@ -92,22 +86,24 @@
           "createdAt": {
             "type": "integer"
           },
+          "contentType": {
+            "type": "string"
+          },
           "size": {
             "type": "integer"
           }
         },
         "required": [
-          "sha256",
-          "contentType",
-          "fileName",
-          "path",
+          "assetId",
+          "assetName",
           "tag",
           "addedAt",
           "uploadedAt",
           "createdAt",
+          "contentType",
           "size"
         ],
-        "title": "ProjectMedia"
+        "title": "ProjectAsset"
       },
       "Issue": {
         "type": "object",
@@ -115,8 +111,7 @@
           "issueId": {
             "type": "string"
           },
-          "file": {
-            "description": "SHA-256 hash of the linked file",
+          "assetId": {
             "type": "string"
           },
           "userId": {
@@ -143,7 +138,7 @@
         },
         "required": [
           "issueId",
-          "file",
+          "assetId",
           "userId",
           "description",
           "timestamp",
@@ -176,10 +171,10 @@
           "createdAt": {
             "type": "integer"
           },
-          "files": {
+          "assets": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ProjectMedia"
+              "$ref": "#/components/schemas/ProjectAsset"
             }
           },
           "issues": {
@@ -195,7 +190,7 @@
           "projectType",
           "subject",
           "createdAt",
-          "files",
+          "assets",
           "issues"
         ],
         "title": "ProjectDetails"
@@ -273,6 +268,14 @@
           "lastModified"
         ],
         "title": "Collection"
+      },
+      "AssetType": {
+        "enum": [
+          "audio",
+          "video",
+          "image"
+        ],
+        "title": "AssetType"
       }
     }
   },
@@ -718,6 +721,7 @@
             "required": true
           }
         ],
+        "deprecated": true,
         "responses": {
           "200": {
             "description": "Default Response"
@@ -774,6 +778,7 @@
             "required": true
           }
         ],
+        "deprecated": true,
         "responses": {
           "200": {
             "description": "Default Response",
@@ -824,6 +829,115 @@
             },
             "in": "path",
             "name": "sha256",
+            "required": true
+          }
+        ],
+        "deprecated": true,
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "msg"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{projectId}/assets/{tag}/{assetId}": {
+      "put": {
+        "operationId": "addAssetToProject",
+        "summary": "addAssetToProject",
+        "tags": [
+          "Projects"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "projectId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "assetId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "tag",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "msg"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removeAssetFromProject",
+        "summary": "removeAssetFromProject",
+        "tags": [
+          "Projects"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "projectId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "assetId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "tag",
             "required": true
           }
         ],
@@ -1398,6 +1512,201 @@
                   },
                   "required": [
                     "msg"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assets": {
+      "post": {
+        "operationId": "createAsset",
+        "summary": "createAsset",
+        "tags": [
+          "Assets"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "assetName": {
+                    "type": "string"
+                  },
+                  "assetType": {
+                    "enum": [
+                      "audio",
+                      "video",
+                      "image"
+                    ]
+                  }
+                },
+                "required": [
+                  "assetName",
+                  "assetType"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "assetId": {
+                      "type": "string"
+                    },
+                    "assetName": {
+                      "type": "string"
+                    },
+                    "assetType": {
+                      "enum": [
+                        "audio",
+                        "video",
+                        "image"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "assetId",
+                    "assetName",
+                    "assetType",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assets/{assetId}/files/{fileClass}": {
+      "get": {
+        "operationId": "getPublicAccessUrl",
+        "summary": "getPublicAccessUrl",
+        "tags": [
+          "Assets"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "assetId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "fileClass",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "getFileUploadUrl",
+        "summary": "getFileUploadUrl",
+        "tags": [
+          "Assets"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "fileName",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sha256",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "contentType",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "createdAt",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "assetId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "fileClass",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
                   ]
                 }
               }

@@ -23,18 +23,18 @@ CREATE TABLE IF NOT EXISTS t_login_history(
 /**
  * Dictionaries
  */
-CREATE TABLE IF NOT EXISTS t_project_types(
-	project_type_id	TEXT NOT NULL
-,	PRIMARY KEY (project_type_id)
-);
+-- CREATE TABLE IF NOT EXISTS t_project_types(
+-- 	project_type_id	TEXT NOT NULL
+-- ,	PRIMARY KEY (project_type_id)
+-- );
 
 
-INSERT INTO
-	t_project_types(project_type_id)
-VALUES
-	('audio'),
-	('video'),
-	('image');
+-- INSERT INTO
+-- 	t_project_types(project_type_id)
+-- VALUES
+-- 	('audio'),
+-- 	('video'),
+-- 	('image');
 
 
 -- CREATE TABLE IF NOT EXISTS t_tags(
@@ -72,9 +72,10 @@ CREATE TABLE IF NOT EXISTS t_projects(
 ,	project_name	TEXT	NOT NULL
 ,	project_type	TEXT	NOT NULL
 ,	subject			TEXT	NOT NULL
-,	created_at		INTEGER --unix timestamp	
+,	created_at		INTEGER --unix timestamp
 ,	PRIMARY KEY (project_id)
-,	FOREIGN KEY (project_type) REFERENCES t_project_types(project_type_id)
+-- ,	FOREIGN KEY (project_type)
+-- 		REFERENCES t_project_types(project_type_id)
 );
 
 CREATE TABLE IF NOT EXISTS t_project_members(
@@ -82,10 +83,16 @@ CREATE TABLE IF NOT EXISTS t_project_members(
 ,	user_id			TEXT	NOT NULL
 ,	added_at		INTEGER	NOT NULL --unix timestamp
 ,	PRIMARY KEY (project_id, user_id)
-,	FOREIGN KEY (project_id) REFERENCES t_projects(project_id)
-,	FOREIGN KEY (user_id) REFERENCES t_users(user_id)
+,	FOREIGN KEY (project_id)
+		REFERENCES t_projects(project_id)
+		ON DELETE CASCADE
+,	FOREIGN KEY (user_id)
+		REFERENCES t_users(user_id)
+		ON DELETE CASCADE
 );
 
+
+-- DEPRECATED
 CREATE TABLE IF NOT EXISTS t_files(
 	sha256			TEXT	NOT NULL --sha256 hash of file
 ,	file_name		TEXT	NOT NULL --original filename at time of upload
@@ -108,6 +115,51 @@ CREATE TABLE IF NOT EXISTS t_project_files(
 ,	FOREIGN KEY (sha256) REFERENCES t_files(sha256)
 );
 
+
+CREATE TABLE IF NOT EXISTS t_assets(
+	asset_id		TEXT NOT NULL --uuid
+,	asset_name		TEXT NOT NULL
+,	asset_type		TEXT NOT NULL --audio, video, image
+,	created_at		INTEGER NOT NULL --unix timestamp
+);
+
+
+
+
+CREATE TABLE IF NOT EXISTS t_asset_files(
+	asset_id		TEXT	NOT NULL
+,	file_class		TEXT 	NOT NULL --base, thumbnail, audio-peaks, screenlist
+,	file_name		TEXT	NOT NULL --original filename at time of upload
+,	content_type	TEXT	NOT NULL --mime type
+,	sha256			TEXT	NOT NULL --sha256 hash of the file	
+,	size			INTEGER
+,	created_at		INTEGER	NOT NULL --unix timestamp, original file last modified date
+,	uploaded_at		INTEGER			 --unix timestamp
+,	PRIMARY KEY (asset_id, file_class)
+,	UNIQUE (sha256)
+);
+
+
+
+
+CREATE TABLE IF NOT EXISTS t_project_assets(
+	project_id		TEXT	NOT NULL
+,	asset_id		TEXT	NOT NULL
+,	tag				TEXT	NOT NULL --primary deliverable, supplementary media, etc...
+--,	path			TEXT			 --potentially usable to create a virtual folder structure for a project
+,	added_at		INTEGER NOT NULL --unix timestamp
+,	PRIMARY KEY (project_id, asset_id, tag)
+,	FOREIGN KEY (project_id)
+		REFERENCES t_projects(project_id)
+		ON DELETE CASCADE
+,	FOREIGN KEY (asset_id)
+		REFERENCES t_assets(asset_id)
+		ON DELETE CASCADE
+);
+
+
+
+
 CREATE TABLE IF NOT EXISTS t_collections(
 	collection_id	TEXT	NOT NULL --uuid v4
 ,	collection_name	TEXT	NOT NULL
@@ -119,18 +171,22 @@ CREATE TABLE IF NOT EXISTS t_collection_projects(
 	collection_id	TEXT	NOT NULL
 ,	project_id		TEXT	NOT NULL
 ,	PRIMARY KEY (collection_id, project_id)
-,	FOREIGN KEY (collection_id) REFERENCES t_collections(collection_id)
-,	FOREIGN KEY (project_id) REFERENCES t_projects(project_id)
+,	FOREIGN KEY (collection_id)
+		REFERENCES t_collections(collection_id)
+		ON DELETE CASCADE
+,	FOREIGN KEY (project_id)
+		REFERENCES t_projects(project_id)
+		ON DELETE CASCADE
 );
 
-/**
- * Issues
- */
+
+
+
 CREATE TABLE IF NOT EXISTS t_issues(
 	issue_id		TEXT	NOT NULL
 ,	project_id		TEXT	NOT NULL
-,	file			TEXT	NOT NULL
-,	user_id			TEXT	NOT NULL
+,	asset_id		TEXT	NOT NULL
+,	user_id			TEXT
 ,	description		TEXT	NOT NULL
 ,	timestamp		REAL 	--seconds
 ,	duration		REAL 	--seconds
@@ -138,9 +194,33 @@ CREATE TABLE IF NOT EXISTS t_issues(
 ,	created_at		INTEGER --unix timestamp
 -- ,	updated_at		INTEGER --unix timestamp
 ,	PRIMARY KEY (issue_id)
-,	FOREIGN KEY (project_id, file) REFERENCES t_project_files(project_id, sha256)
-,	FOREIGN KEY (user_id) REFERENCES t_users(user_id)
+,	FOREIGN KEY (project_id, asset_id)
+		REFERENCES t_project_assets(project_id, asset_id)
+		ON DELETE CASCADE
+,	FOREIGN KEY (user_id)
+		REFERENCES t_users(user_id)
+		ON DELETE SET NULL
 );
+
+
+
+
+/**
+ * Views
+ */
+CREATE VIEW IF NOT EXISTS
+	v_assets	
+AS SELECT
+	A.*
+,	AF.created_at	
+,	AF.uploaded_at
+,	AF.content_type
+,	AF.size
+FROM
+	t_assets A
+JOIN
+	t_asset_files AF ON (A.asset_id = AF.asset_id AND AF.file_class = 'base');
+
 
 
 
@@ -148,14 +228,15 @@ CREATE VIEW IF NOT EXISTS
 	v_projects
 AS SELECT
 	P.*
-,	F1.sha256 AS "thumbnail"
-,	F2.sha256 AS "backgroundImage"
+,	A1.asset_id AS "thumbnail"
+,	A2.asset_id AS "backgroundImg"
 FROM
 	t_projects P
 LEFT JOIN
-	t_project_files F1 ON (P.project_id = F1.project_id AND F1.tag = 'thumbnail')
+	v_project_assets A1 ON (P.project_id = A1.project_id AND A1.tag = 'thumbnail')
 LEFT JOIN
-	t_project_files F2 ON (P.project_id = F2.project_id AND F2.tag = 'background-img');
+	v_project_assets A2 ON (P.project_id = A2.project_id AND A2.tag = 'background-img');
+
 
 
 
@@ -168,6 +249,36 @@ FROM
 	v_projects P
 JOIN
 	t_project_members PM ON	P.project_id = PM.project_id;
+
+
+
+
+CREATE VIEW IF NOT EXISTS
+	v_project_assets
+AS SELECT
+	PA.project_id
+,	PA.tag
+,	A.*
+,	PA.added_at
+FROM
+	t_project_assets PA
+JOIN
+	v_assets A ON (PA.asset_id = A.asset_id);
+
+
+
+CREATE VIEW IF NOT EXISTS
+	v_user_assets
+AS SELECT
+	UP.user_id
+,	A.asset_id
+FROM
+	v_user_projects UP
+JOIN
+	t_project_assets PA USING ( project_id )
+JOIN
+	t_assets A USING ( asset_id );
+	
 
 
 

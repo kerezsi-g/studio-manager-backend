@@ -7,7 +7,7 @@ import { UserData } from "schemas/UserData.type";
 import { ProjectDetails } from "schemas/ProjectDetails.type";
 
 import { ProjectsService, IssueService } from "services";
-import { ProjectMedia } from "schemas/ProjectMedia.type";
+import { ProjectAsset } from "schemas/ProjectAsset";
 import { Issue } from "schemas/Issue.type";
 
 const ProjectIdSchema = T.Object({
@@ -22,7 +22,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
   instance.addHook("onRequest", authenticate);
 
   instance.addSchema(Project);
-  instance.addSchema(ProjectMedia);
+  instance.addSchema(ProjectAsset);
   instance.addSchema(Issue);
   instance.addSchema(ProjectDetails);
   instance.addSchema(UserData);
@@ -205,6 +205,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
 
   instance.get("/projects/:projectId/files", {
     schema: {
+      deprecated: true,
       tags: ["Projects"],
       operationId: "getProjectFiles",
       params: T.Object({
@@ -218,6 +219,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
 
   instance.put("/projects/:projectId/files/:tag/:sha256", {
     schema: {
+      deprecated: true,
       tags: ["Projects"],
       operationId: "addFileToProject",
       params: T.Object({
@@ -245,6 +247,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
 
   instance.delete("/projects/:projectId/files/:tag/:sha256", {
     schema: {
+      deprecated: true,
       tags: ["Projects"],
       operationId: "removeFileFromProject",
       params: T.Object({
@@ -264,6 +267,50 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       reply.status(200).send({
         msg: "OK",
       });
+    },
+  });
+
+  instance.put("/projects/:projectId/assets/:tag/:assetId", {
+    schema: {
+      operationId: "addAssetToProject",
+      tags: ["Projects"],
+      params: T.Object({
+        projectId: T.String(),
+        assetId: T.String(),
+        tag: T.String(),
+      }),
+      response: {
+        200: MessageSchema,
+      },
+    },
+    handler: (request, reply) => {
+      const { projectId, assetId, tag } = request.params;
+
+      ProjectsService.addAssetToProject({ projectId, assetId, tag });
+
+      reply.status(200).send({ msg: "OK" });
+    },
+  });
+
+  instance.delete("/projects/:projectId/assets/:tag/:assetId", {
+    schema: {
+      operationId: "removeAssetFromProject",
+      tags: ["Projects"],
+      params: T.Object({
+        projectId: T.String(),
+        assetId: T.String(),
+        tag: T.String(),
+      }),
+      response: {
+        200: MessageSchema,
+      },
+    },
+    handler: (request, reply) => {
+      const { projectId, assetId, tag } = request.params;
+
+      ProjectsService.removeAssetFromProject({ projectId, assetId, tag });
+
+      reply.status(200).send({ msg: "OK" });
     },
   });
 

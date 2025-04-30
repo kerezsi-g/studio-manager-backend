@@ -1,4 +1,4 @@
-import { generateUuid } from "utils/generateUuid";
+import { generateUuidV4 } from "utils/generateUuid";
 import { db } from "db";
 
 type QueryParams = {
@@ -38,7 +38,7 @@ interface Args {
 
 export function CreateUser({ email, hashedPassword, name }: Args) {
   const bindParams: QueryParams = {
-    userId: generateUuid(),
+    userId: generateUuidV4(),
     email,
     name,
     hashedPassword,

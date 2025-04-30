@@ -1,5 +1,5 @@
 import { Type as T, Static } from "utils/typebox-openapi";
-import { ProjectMedia } from "./ProjectMedia.type";
+import { ProjectAsset } from "./ProjectAsset";
 import { Issue } from "./Issue.type";
 import { ProjectType } from "./ProjectType.type";
 
@@ -12,8 +12,8 @@ export const ProjectDetails = T.Object(
     projectType: ProjectType,
     subject: T.String(),
     createdAt: T.Integer(),
-    files: T.Array(T.SchemaRef(ProjectMedia)),
-    issues: T.Array(T.SchemaRef(Issue))
+    assets: T.Array(T.SchemaRef(ProjectAsset)),
+    issues: T.Array(T.SchemaRef(Issue)),
   },
   { $id }
 );

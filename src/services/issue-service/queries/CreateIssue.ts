@@ -1,9 +1,9 @@
-import { generateUuid } from "utils/generateUuid";
+import { generateUuidV4 } from "utils/generateUuid";
 import { db } from "db";
 
 type QueryParams = {
   projectId: string;
-  file: string;
+  assetId: string;
   issueId: string;
   userId: string;
   description: string;
@@ -18,9 +18,9 @@ type QueryResult = {
 
 const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	INSERT INTO
-		t_issues (issue_id, project_id, file, user_id, description, timestamp, duration, created_at)
+		t_issues (issue_id, project_id, asset_id, user_id, description, timestamp, duration, created_at)
 	VALUES
-		(@issueId, @projectId, @file, @userId, @description, @timestamp, @duration, @createdAt)
+		(@issueId, @projectId, @assetId, @userId, @description, @timestamp, @duration, @createdAt)
 	RETURNING
 		issue_id as "issueId"
 `);
@@ -28,21 +28,28 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 interface Args {
   userId: string;
   projectId: string;
-  file: string;
+  assetId: string;
   description: string;
   timestamp: number | null;
   duration: number | null;
 }
 
-export function CreateIssue({ userId, projectId, file, description, timestamp, duration }: Args) {
+export function CreateIssue({
+  userId,
+  projectId,
+  assetId,
+  description,
+  timestamp,
+  duration,
+}: Args) {
   if (duration !== null && timestamp === null) {
     throw new Error("Timestamp cannot be null if a duration is provided");
   }
 
   const bindParams: QueryParams = {
-    issueId: generateUuid(),
+    issueId: generateUuidV4(),
     projectId,
-    file,
+    assetId,
     userId,
     description,
     timestamp,
