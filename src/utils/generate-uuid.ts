@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
 
-export function generateUuidV4() {
+export function generateUuid() {
   return crypto.randomUUID();
 }

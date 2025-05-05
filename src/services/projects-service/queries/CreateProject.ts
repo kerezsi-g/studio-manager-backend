@@ -1,5 +1,5 @@
 import { db } from "db";
-import { generateUuidV4 } from "utils/generateUuid";
+import { generateUuid } from "utils/generate-uuid";
 
 type QueryParams = {
   projectName: string;
@@ -33,7 +33,7 @@ export function CreateProject({ projectName, projectType, subject }: CreateProje
     projectName,
     projectType,
     subject,
-    projectId: generateUuidV4(),
+    projectId: generateUuid(),
     createdAt: Date.now(),
   };
 

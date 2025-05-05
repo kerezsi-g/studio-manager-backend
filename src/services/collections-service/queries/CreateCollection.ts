@@ -1,4 +1,4 @@
-import { generateUuidV4 } from "utils/generateUuid";
+import { generateUuid } from "utils/generate-uuid";
 import { db } from "db";
 
 type QueryParams = {
@@ -27,7 +27,7 @@ interface Args {
 export function CreateCollection({ collectionName }: Args) {
   const bindParams: QueryParams = {
     collectionName,
-    collectionId: generateUuidV4(),
+    collectionId: generateUuid(),
     createdAt: Date.now(),
   };
 

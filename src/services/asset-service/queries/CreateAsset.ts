@@ -1,5 +1,5 @@
 import { db } from "db";
-import { generateUuidV4 } from "utils/generateUuid";
+import { generateUuid } from "utils/generate-uuid";
 import { AssetType } from "schemas";
 
 type Args = {
@@ -31,7 +31,7 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 
 export function CreateAsset({ assetName, assetType }: Args) {
   const bindParams: QueryParams = {
-    assetId: generateUuidV4(),
+    assetId: generateUuid(),
     assetName,
     assetType,
     createdAt: Date.now(),

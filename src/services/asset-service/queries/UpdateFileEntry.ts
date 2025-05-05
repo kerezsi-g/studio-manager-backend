@@ -1,19 +1,21 @@
 import { db } from "db";
 
-export type GetFileEntryArgs = {
-  userId: string;
+export type UpdateFileEntryArgs = {
   assetId: string;
   fileClass: string;
+  size: number;
+  uploadedAt: number;
 };
 
 type QueryParams = {
-  userId: string;
   assetId: string;
   fileClass: string;
+  size: number;
+  uploadedAt: number;
 };
 
 // Return the row as is
-export type FileEntry = {
+type QueryResult = {
   assetId: string;
   fileClass: string;
   sha256: string;
@@ -23,35 +25,38 @@ export type FileEntry = {
   status: string;
 };
 
-const statement = db.query<FileEntry, QueryParams>(/*sql*/ `
-	SELECT
+const statement = db.query<QueryResult, QueryParams>(/*sql*/ `
+	UPDATE
+		t_asset_files
+	SET
+		size			= @size
+	,	uploaded_at		= @uploadedAt
+	WHERE
+		asset_id		= @assetId
+	AND
+		file_class		= @fileClass
+	RETURNING
 		asset_id		AS "assetId"
 	,	file_class		AS "fileClass"
 	,	sha256			AS "sha256"
 	,	content_type	AS "contentType"
 	,	created_at		AS "createdAt"
 	,	uploaded_at		AS "uploadedAt"
-	FROM
-		v_user_assets	AS va
-	JOIN
-		t_asset_files	AS af
-		USING ( asset_id )
-	WHERE
-		va.user_id = @userId
-		AND
-		va.asset_id = @assetId
-		AND
-		af.file_class = @fileClass
 `);
 
-export function GetFileEntry({ userId, assetId, fileClass }: GetFileEntryArgs) {
+export function UpdateFileEntry({ assetId, fileClass, size, uploadedAt }: UpdateFileEntryArgs) {
   const bindParams: QueryParams = {
-    userId,
     assetId,
     fileClass,
+    size,
+    uploadedAt,
   };
 
   const result = statement.get(bindParams);
+
+  if (!result) {
+    throw new Error("Failed to update file entry");
+  }
 
   return result;
 }

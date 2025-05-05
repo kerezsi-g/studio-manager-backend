@@ -1,4 +1,4 @@
-import { generateUuidV4 } from "utils/generateUuid";
+import { generateUuid } from "utils/generate-uuid";
 import { db } from "db";
 
 type QueryParams = {
@@ -47,7 +47,7 @@ export function CreateIssue({
   }
 
   const bindParams: QueryParams = {
-    issueId: generateUuidV4(),
+    issueId: generateUuid(),
     projectId,
     assetId,
     userId,

@@ -6,6 +6,9 @@ import path from "node:path";
 import { mkdir, exists } from "node:fs/promises";
 
 import config from "config";
+import { FileGenerationService } from "services/file-generation-service";
+import { FileEntry } from "./queries";
+import { generateHash } from "utils/generate-hash";
 
 const s3Client = new S3Client(config.s3);
 
@@ -67,6 +70,21 @@ export namespace AssetService {
     return publicUrl;
   }
 
+  export async function uploadedCallback(userId: string, { assetId, fileClass }: FileSelector) {
+    const s3file = await getS3FileStrict({ assetId, fileClass });
+
+    const stat = await s3file.stat();
+
+    const fileEntry = Queries.UpdateFileEntry({
+      assetId,
+      fileClass,
+      size: stat.size,
+      uploadedAt: stat.lastModified.valueOf(),
+    });
+
+    await postProcessFile(fileEntry);
+  }
+
   /**
    * Returns a read stream for the file if it exists
    */
@@ -104,6 +122,8 @@ export namespace AssetService {
 
     const exists = await s3file.exists();
 
+    // console.log({exists})
+
     if (!exists) {
       throw new Error("File not found");
     }
@@ -135,5 +155,54 @@ export namespace AssetService {
     }
 
     return tempFile;
+  }
+
+  async function postProcessFile(file: FileEntry) {
+    const tempFile = await createTemporaryLocalFile({
+      assetId: file.assetId,
+      fileClass: "base",
+    });
+
+    if (file.contentType.startsWith("image")) {
+      const thumbnailFile = await FileGenerationService.resizeImage(tempFile);
+
+      const hash = await generateHash(thumbnailFile);
+
+      const thumbnailFileEntry = createFileEntry({
+        assetId: file.assetId,
+        fileClass: "thumbnail",
+        fileName: "thumbnail",
+        sha256: hash,
+        contentType: thumbnailFile.type,
+        createdAt: file.createdAt,
+      });
+
+      const s3file = s3Client.file(`${file.assetId}-thumbnail`);
+
+      await s3file.write(thumbnailFile);
+
+      await thumbnailFile.unlink();
+    }
+
+    if (file.contentType.startsWith("audio")) {
+      const peaksFile = await FileGenerationService.extractPeaks(tempFile);
+
+      const hash = await generateHash(peaksFile);
+
+      const peaksFileEntry = createFileEntry({
+        assetId: file.assetId,
+        fileClass: "peaks",
+        fileName: "peaks",
+        sha256: hash,
+        contentType: peaksFile.type,
+        createdAt: file.createdAt,
+      });
+
+      const s3file = s3Client.file(`${file.assetId}-peaks`);
+
+      await s3file.write(peaksFile);
+
+      await peaksFile.unlink();
+    }
   }
 }

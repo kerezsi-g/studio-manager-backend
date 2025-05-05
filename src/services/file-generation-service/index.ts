@@ -18,16 +18,10 @@ export namespace FileGenerationService {
   export async function extractThumbnail(file: BunFile): Promise<BunFile> {
     const thumbnail = await Utils.extractThumbnail(file);
 
-    return thumbnail;
-  }
+    const thumbnailResized = await resizeImage(thumbnail);
 
-  export function genSha256Hash(buf: ArrayBuffer) {
-    const hasher = new Bun.CryptoHasher("sha256");
+    await thumbnail.unlink();
 
-    hasher.update(buf);
-
-    const hash = hasher.digest("hex");
-
-    return hash;
+    return thumbnailResized;
   }
 }

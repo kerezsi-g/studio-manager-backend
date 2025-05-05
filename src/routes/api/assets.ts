@@ -17,12 +17,15 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     schema: {
       operationId: "createAsset",
       tags: ["Assets"],
-      body: T.Object({
-        assetName: T.String(),
-        assetType: AssetTypeSchema,
-      }, {
-		title: "CreateAssetRequest"
-	  }),
+      body: T.Object(
+        {
+          assetName: T.String(),
+          assetType: AssetTypeSchema,
+        },
+        {
+          title: "CreateAssetRequest",
+        }
+      ),
       response: {
         200: T.Object({
           assetId: T.String(),
@@ -100,6 +103,32 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       });
 
       reply.status(200).send({ url: uploadUrl });
+    },
+  });
+
+  instance.patch("/assets/:assetId/files/:fileClass", {
+    schema: {
+      operationId: "markFileAsUploaded",
+      tags: ["Assets"],
+      params: T.Object({
+        assetId: T.String(),
+        fileClass: T.String(),
+      }),
+      response: {
+        200: T.Object({
+          msg: T.String(),
+        }),
+      },
+    },
+    handler: async (request, reply) => {
+      const { assetId, fileClass } = request.params;
+
+      await AssetService.uploadedCallback(request.user.id, {
+        assetId,
+        fileClass,
+      });
+
+      return reply.status(200).send({ msg: "Processing complete" });
     },
   });
 };
