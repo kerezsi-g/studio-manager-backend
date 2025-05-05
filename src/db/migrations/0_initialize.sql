@@ -311,4 +311,24 @@ JOIN
 	v_user_projects UP ON UP.project_id = CP.project_id;
 
 
+CREATE VIEW IF NOT EXISTS
+	v_asset_files
+AS SELECT
+	ta.asset_id 
+,	ta.asset_name
+,	ta.asset_type
+,	json_group_array(
+		json_object(
+			'type', taf.file_class,
+			'fileName', taf.file_name,
+			'sha256', taf.sha256,
+			'contentType', taf.content_type,
+			'size', taf.size,
+			'createdAt', taf.created_at,
+			'uploadedAt', taf.uploaded_at	
+		)
+	) AS files
+from		t_assets ta 
+join		t_asset_files taf using (asset_id)
+group BY  	ta.asset_id	
 
