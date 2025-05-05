@@ -6,6 +6,17 @@ import { UserService } from "services/user-service";
 import { authenticate } from "server/hooks/auth";
 import { UserData } from "schemas/UserData.type";
 import { MessageSchema } from "schemas/MessageSchema.type";
+import fastifyOAuth2 from "@fastify/oauth2";
+
+import oauth from "oauth.json";
+
+import { OAuth2Namespace } from "@fastify/oauth2";
+
+declare module "fastify" {
+  interface FastifyInstance {
+    googleOAuth2: OAuth2Namespace;
+  }
+}
 
 const logger = new Logger("API");
 
@@ -13,6 +24,19 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
   instance.addHook("onRequest", authenticate);
 
   instance.addSchema(UserData);
+
+  instance.register(fastifyOAuth2, {
+    name: "googleOAuth2",
+    credentials: {
+      client: {
+        id: oauth.web.client_id,
+        secret: oauth.web.client_secret,
+      },
+      auth: fastifyOAuth2.GOOGLE_CONFIGURATION,
+    },
+    startRedirectPath: "/auth/oauth2",
+    callbackUri: "/oauth2/callback",
+  });
 
   instance.post("/auth", {
     schema: {

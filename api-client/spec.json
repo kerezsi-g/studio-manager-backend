@@ -387,6 +387,16 @@
         }
       }
     },
+    "/auth/oauth2": {
+      "get": {
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
     "/projects": {
       "get": {
         "operationId": "getProjects",
@@ -1731,6 +1741,51 @@
                   },
                   "required": [
                     "url"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "markFileAsUploaded",
+        "summary": "markFileAsUploaded",
+        "tags": [
+          "Assets"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "assetId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "fileClass",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "msg"
                   ]
                 }
               }
