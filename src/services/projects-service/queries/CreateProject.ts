@@ -11,6 +11,10 @@ type QueryParams = {
 
 type QueryResult = {
   projectId: string;
+  projectName: string;
+  projectType: string;
+  createdAt: number;
+  subject: string;
 };
 
 const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
@@ -19,7 +23,11 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	VALUES
 		(@projectId, @projectName, @projectType, @subject, @createdAt)
 	RETURNING
-		project_id as projectId
+		project_id		AS "projectId",
+		project_name	AS "projectName",
+		project_type	AS "projectType",
+		subject			AS "subject",
+		created_at		AS "createdAt"
 `);
 
 export interface CreateProjectArgs {

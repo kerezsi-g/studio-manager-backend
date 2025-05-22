@@ -55,15 +55,13 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
         }
       ),
       response: {
-        200: T.Object({
-          issueId: T.String(),
-        }),
+        200: T.SchemaRef(Issue),
       },
     },
     handler: (request, reply) => {
       const { projectId, fileId, description, timestamp = null, duration = null } = request.body;
 
-      const issueId = IssueService.createIssue({
+      const issue = IssueService.createIssue({
         userId: request.user.id,
         projectId,
         fileId,
@@ -72,7 +70,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
         duration,
       });
 
-      reply.status(200).send({ issueId });
+      reply.status(200).send(issue);
     },
   });
 

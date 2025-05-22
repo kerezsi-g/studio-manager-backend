@@ -63,7 +63,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
         { title: "CreateProjectRequest" }
       ),
       response: {
-        200: ProjectIdSchema,
+        200: T.SchemaRef(Project),
       },
     },
     handler: (request, reply) => {
@@ -73,7 +73,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
 
       ProjectsService.addProjectMember({ projectId: project.projectId, userId: request.user.id });
 
-      reply.status(200).send({ projectId: project.projectId });
+      reply.status(200).send(project);
     },
   });
 
@@ -115,16 +115,16 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
         }
       ),
       response: {
-        200: ProjectIdSchema,
+        200: T.SchemaRef(Project),
       },
     },
     handler: (request, reply) => {
       const { projectId } = request.params;
       const { projectName } = request.body;
 
-      ProjectsService.updateProject({ projectId, projectName });
+      const project = ProjectsService.updateProject({ projectId, projectName });
 
-      reply.status(200).send({ projectId });
+      reply.status(200).send(project);
     },
   });
 

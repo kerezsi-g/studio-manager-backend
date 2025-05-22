@@ -14,6 +14,13 @@ type QueryParams = {
 
 type QueryResult = {
   issueId: string;
+  projectId: string;
+  fileId: string;
+  userId: string;
+  description: string;
+  timestamp: number | null;
+  duration: number | null;
+  createdAt: number;
 };
 
 const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
@@ -22,7 +29,14 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	VALUES
 		(@issueId, @projectId, @fileId, @userId, @description, @timestamp, @duration, @createdAt)
 	RETURNING
-		issue_id as "issueId"
+		issue_id		AS "issueId",
+		project_id		AS "projectId",
+		file_id			AS "fileId",
+		user_id			AS "userId",
+		description		AS "description",
+		timestamp		AS "timestamp",
+		duration		AS "duration",
+		created_at		AS "createdAt"	
 `);
 
 interface Args {
@@ -34,14 +48,7 @@ interface Args {
   duration: number | null;
 }
 
-export function CreateIssue({
-  userId,
-  projectId,
-  fileId,
-  description,
-  timestamp,
-  duration,
-}: Args) {
+export function CreateIssue({ userId, projectId, fileId, description, timestamp, duration }: Args) {
   if (duration !== null && timestamp === null) {
     throw new Error("Timestamp cannot be null if a duration is provided");
   }
@@ -60,7 +67,7 @@ export function CreateIssue({
   const result = sql.get(bindParams);
 
   if (result) {
-    return result.issueId;
+    return result;
   } else {
     throw new Error("Failed to create issue");
   }

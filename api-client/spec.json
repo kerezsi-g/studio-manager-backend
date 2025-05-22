@@ -215,8 +215,7 @@
           "description",
           "timestamp",
           "duration",
-          "createdAt",
-          "resolvedAt"
+          "createdAt"
         ],
         "title": "Issue"
       },
@@ -449,15 +448,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "projectId": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "projectId"
-                  ]
+                  "$ref": "#/components/schemas/Project"
                 }
               }
             }
@@ -535,15 +526,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "projectId": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "projectId"
-                  ]
+                  "$ref": "#/components/schemas/Project"
                 }
               }
             }
@@ -1234,15 +1217,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "issueId": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "issueId"
-                  ]
+                  "$ref": "#/components/schemas/Issue"
                 }
               }
             }
