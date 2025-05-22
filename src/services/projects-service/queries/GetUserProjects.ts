@@ -10,7 +10,6 @@ type QueryResult = {
   projectType: string;
   subject: string;
   createdAt: number;
-  thumbnail: string | null;
 };
 
 const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
@@ -19,8 +18,7 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	,	project_name	AS "projectName"
 	,	project_type	AS "projectType"
 	,	subject			AS "subject"
-	,	created_at		AS "createdAt"
-	,	thumbnail		AS "thumbnail"
+	,	created_at		AS "createdAt"	
 	FROM
 		v_user_projects
 	WHERE

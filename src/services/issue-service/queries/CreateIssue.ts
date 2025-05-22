@@ -3,7 +3,7 @@ import { db } from "db";
 
 type QueryParams = {
   projectId: string;
-  assetId: string;
+  fileId: string;
   issueId: string;
   userId: string;
   description: string;
@@ -18,9 +18,9 @@ type QueryResult = {
 
 const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	INSERT INTO
-		t_issues (issue_id, project_id, asset_id, user_id, description, timestamp, duration, created_at)
+		t_issues (issue_id, project_id, file_id, user_id, description, timestamp, duration, created_at)
 	VALUES
-		(@issueId, @projectId, @assetId, @userId, @description, @timestamp, @duration, @createdAt)
+		(@issueId, @projectId, @fileId, @userId, @description, @timestamp, @duration, @createdAt)
 	RETURNING
 		issue_id as "issueId"
 `);
@@ -28,7 +28,7 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 interface Args {
   userId: string;
   projectId: string;
-  assetId: string;
+  fileId: string;
   description: string;
   timestamp: number | null;
   duration: number | null;
@@ -37,7 +37,7 @@ interface Args {
 export function CreateIssue({
   userId,
   projectId,
-  assetId,
+  fileId,
   description,
   timestamp,
   duration,
@@ -49,7 +49,7 @@ export function CreateIssue({
   const bindParams: QueryParams = {
     issueId: generateUuid(),
     projectId,
-    assetId,
+    fileId,
     userId,
     description,
     timestamp,

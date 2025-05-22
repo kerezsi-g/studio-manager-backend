@@ -25,18 +25,18 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
 
   instance.addSchema(UserData);
 
-  instance.register(fastifyOAuth2, {
-    name: "googleOAuth2",
-    credentials: {
-      client: {
-        id: oauth.web.client_id,
-        secret: oauth.web.client_secret,
-      },
-      auth: fastifyOAuth2.GOOGLE_CONFIGURATION,
-    },
-    startRedirectPath: "/auth/oauth2",
-    callbackUri: "/oauth2/callback",
-  });
+//   instance.register(fastifyOAuth2, {
+//     name: "googleOAuth2",
+//     credentials: {
+//       client: {
+//         id: oauth.web.client_id,
+//         secret: oauth.web.client_secret,
+//       },
+//       auth: fastifyOAuth2.GOOGLE_CONFIGURATION,
+//     },
+//     startRedirectPath: "/auth/oauth2",
+//     callbackUri: "/oauth2/callback",
+//   });
 
   instance.post("/auth", {
     schema: {

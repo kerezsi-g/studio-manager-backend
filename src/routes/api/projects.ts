@@ -4,7 +4,18 @@ import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import { authenticate } from "server/hooks/auth";
 
 import { ProjectsService, IssueService } from "services";
-import { Issue, AssetTag, ProjectAsset, UserData, Project, ProjectDetails } from "schemas";
+import {
+  Issue,
+  AssetTag,
+  ProjectAsset,
+  UserData,
+  Project,
+  ProjectDetails,
+  AssetTypeSchema,
+  AssetTagSchema,
+  AssetType,
+} from "schemas";
+import { FileService } from "services/file-service";
 
 const ProjectIdSchema = T.Object({
   projectId: T.String(),
@@ -17,12 +28,13 @@ const MessageSchema = T.Object({
 const plugin: FastifyPluginAsyncTypebox = async function (instance) {
   instance.addHook("onRequest", authenticate);
 
-  instance.addSchema(AssetTag);
+  instance.addSchema(AssetTagSchema);
+  instance.addSchema(AssetTypeSchema);
   instance.addSchema(UserData);
   instance.addSchema(Project);
   instance.addSchema(ProjectDetails);
-  instance.addSchema(Issue);
   instance.addSchema(ProjectAsset);
+  instance.addSchema(Issue);
 
   instance.get("/projects", {
     schema: {
@@ -62,6 +74,27 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       ProjectsService.addProjectMember({ projectId: project.projectId, userId: request.user.id });
 
       reply.status(200).send({ projectId: project.projectId });
+    },
+  });
+
+  instance.get("/projects/:projectId", {
+    schema: {
+      operationId: "getProjectDetails",
+      tags: ["Projects"],
+      params: T.Object({
+        projectId: T.String(),
+      }),
+      response: {
+        200: T.SchemaRef(ProjectDetails),
+      },
+    },
+    handler: (request, reply) => {
+      const data = ProjectsService.getProjectDetails({
+        userId: request.user.id,
+        projectId: request.params.projectId,
+      });
+
+      reply.status(200).send(data);
     },
   });
 
@@ -108,6 +141,125 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     },
     handler: (request, reply) => {
       throw new Error("Not implemented");
+    },
+  });
+
+  instance.put("/projects/:projectId/assets/:assetType/:fileId", {
+    schema: {
+      operationId: "createAsset",
+      tags: ["Projects"],
+      params: T.Object({
+        projectId: T.String(),
+        assetType: T.SchemaRef(AssetTypeSchema),
+        fileId: T.String(),
+      }),
+      response: {
+        200: MessageSchema,
+      },
+    },
+    handler: (request, reply) => {
+      const { projectId, assetType, fileId } = request.params;
+
+      ProjectsService.createAsset({ projectId, assetType, fileId });
+
+      reply.status(200).send({ msg: "OK" });
+    },
+  });
+
+  instance.delete("/projects/:projectId/assets/:assetType/:fileId", {
+    schema: {
+      operationId: "deleteAsset",
+      tags: ["Projects"],
+      params: T.Object({
+        projectId: T.String(),
+        assetType: T.SchemaRef(AssetTypeSchema),
+        fileId: T.String(),
+      }),
+      response: {
+        200: MessageSchema,
+      },
+    },
+    handler: (request, reply) => {
+      const { projectId, assetType, fileId } = request.params;
+
+      ProjectsService.deleteAsset({ projectId, assetType, fileId });
+
+      reply.status(200).send({ msg: "OK" });
+    },
+  });
+
+  instance.patch("/projects/:projectId/assets/:assetType/:fileId", {
+    schema: {
+      operationId: "setAssetTag",
+      tags: ["Projects"],
+      params: T.Object({
+        projectId: T.String(),
+        assetType: T.SchemaRef(AssetTypeSchema),
+        fileId: T.String(),
+      }),
+      querystring: T.Object({
+        tag: T.SchemaRef(AssetTagSchema),
+      }),
+      response: {
+        200: MessageSchema,
+      },
+    },
+    handler: (request, reply) => {
+      const { projectId, assetType, fileId } = request.params;
+
+      ProjectsService.tagAsset({ projectId, assetType, fileId }, request.query.tag);
+
+      reply.status(200).send({ msg: "OK" });
+    },
+  });
+
+  instance.get("/projects/:projectId/background-image", {
+    schema: {
+      operationId: "getBackgroundImage",
+      hide: true,
+      tags: ["Projects"],
+      params: T.Object({
+        projectId: T.String(),
+      }),
+    },
+    handler: async (request, reply) => {
+      const { projectId } = request.params;
+
+      const assets = ProjectsService.getAssetsByType(projectId, AssetType.BackgroundImage);
+
+      if (assets.length == 0) {
+        reply.status(404).send();
+        return;
+      }
+
+      const url = await FileService.getDownloadUrl(assets[0].fileId);
+
+      return reply.redirect(url, 302);
+    },
+  });
+
+  instance.get("/projects/:projectId/thumbnail", {
+    schema: {
+      operationId: "getThumbnail",
+      hide: true,
+      tags: ["Projects"],
+      params: T.Object({
+        projectId: T.String(),
+      }),
+    },
+    handler: async (request, reply) => {
+      const { projectId } = request.params;
+
+      const assets = ProjectsService.getAssetsByType(projectId, AssetType.Thumbnail);
+
+      if (assets.length == 0) {
+        reply.status(404).send();
+        return;
+      }
+
+      const url = await FileService.getDownloadUrl(assets[0].fileId, "thumbnail");
+
+      return reply.redirect(url, 302);
     },
   });
 
@@ -177,218 +329,6 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       }
 
       ProjectsService.removeProjectMember({ projectId, userId });
-
-      reply.status(200).send({
-        msg: "OK",
-      });
-    },
-  });
-
-  instance.get("/projects/:projectId", {
-    schema: {
-      operationId: "getProjectDetails",
-      tags: ["Projects"],
-      params: T.Object({
-        projectId: T.String(),
-      }),
-      response: {
-        200: T.SchemaRef(ProjectDetails),
-      },
-    },
-    handler: (request, reply) => {
-      const data = ProjectsService.getProjectDetails({
-        userId: request.user.id,
-        projectId: request.params.projectId,
-      });
-
-      reply.status(200).send(data);
-    },
-  });
-
-  instance.get("/projects/:projectId/files", {
-    schema: {
-      deprecated: true,
-      tags: ["Projects"],
-      operationId: "getProjectFiles",
-      params: T.Object({
-        projectId: T.String(),
-      }),
-    },
-    handler: (request, reply) => {
-      throw new Error("Not implemented");
-    },
-  });
-
-  instance.put("/projects/:projectId/files/:tag/:sha256", {
-    schema: {
-      deprecated: true,
-      tags: ["Projects"],
-      operationId: "addFileToProject",
-      params: T.Object({
-        projectId: T.String(),
-        tag: T.String(),
-        sha256: T.String(),
-      }),
-      querystring: T.Object({
-        path: T.Optional(T.String()),
-        fileName: T.Optional(T.String()),
-      }),
-      response: {
-        200: MessageSchema,
-      },
-    },
-    handler: (request, reply) => {
-      const { projectId, tag, sha256 } = request.params;
-      const { path, fileName } = request.query;
-
-      ProjectsService.linkFileToProject({ projectId, sha256, tag, path, fileName });
-
-      reply.status(200).send({ msg: "OK" });
-    },
-  });
-
-  instance.delete("/projects/:projectId/files/:tag/:sha256", {
-    schema: {
-      deprecated: true,
-      tags: ["Projects"],
-      operationId: "removeFileFromProject",
-      params: T.Object({
-        projectId: T.String(),
-        tag: T.String(),
-        sha256: T.String(),
-      }),
-      response: {
-        200: MessageSchema,
-      },
-    },
-    handler: (request, reply) => {
-      const { projectId, tag, sha256 } = request.params;
-
-      ProjectsService.unlinkFileFromProject({ projectId, sha256, tag });
-
-      reply.status(200).send({
-        msg: "OK",
-      });
-    },
-  });
-
-  instance.put("/projects/:projectId/assets/:assetId", {
-    schema: {
-      operationId: "addAssetToProject",
-      tags: ["Projects"],
-      params: T.Object({
-        projectId: T.String(),
-        assetId: T.String(),
-      }),
-      querystring: T.Object({
-        tag: AssetTag,
-      }),
-      response: {
-        200: MessageSchema,
-      },
-    },
-    handler: (request, reply) => {
-      const { projectId, assetId } = request.params;
-      const { tag } = request.query;
-
-      ProjectsService.addAssetToProject({ projectId, assetId, tag });
-
-      reply.status(200).send({ msg: "OK" });
-    },
-  });
-
-  instance.delete("/projects/:projectId/assets/:assetId", {
-    schema: {
-      operationId: "removeAssetFromProject",
-      tags: ["Projects"],
-      params: T.Object({
-        projectId: T.String(),
-        assetId: T.String(),
-      }),
-      querystring: T.Object({
-        tag: AssetTag,
-      }),
-      response: {
-        200: MessageSchema,
-      },
-    },
-    handler: (request, reply) => {
-      const { projectId, assetId } = request.params;
-      const { tag } = request.query;
-
-      ProjectsService.removeAssetFromProject({ projectId, assetId, tag });
-
-      reply.status(200).send({ msg: "OK" });
-    },
-  });
-
-  instance.get("/projects/:projectId/issues", {
-    schema: {
-      tags: ["Projects"],
-      operationId: "getIssues",
-    },
-    handler: (request, reply) => {
-      throw new Error("Not implemented");
-    },
-  });
-
-  instance.post("/projects/:projectId/issues", {
-    schema: {
-      operationId: "createIssue",
-      tags: ["Projects"],
-      params: T.Object({
-        projectId: T.String(),
-      }),
-      body: T.Object(
-        {
-          assetId: T.String(),
-          description: T.String(),
-          timestamp: T.Optional(T.Number()),
-          duration: T.Optional(T.Number()),
-        },
-        {
-          title: "CreateIssueRequest",
-        }
-      ),
-      response: {
-        200: T.Object({
-          issueId: T.String(),
-        }),
-      },
-    },
-    handler: (request, reply) => {
-      const { projectId } = request.params;
-      const { description, timestamp = null, duration = null, assetId } = request.body;
-
-      const issueId = IssueService.createIssue({
-        userId: request.user.id,
-        assetId,
-        projectId,
-        description,
-        timestamp,
-        duration,
-      });
-
-      reply.status(200).send({ issueId });
-    },
-  });
-
-  instance.patch("/projects/:projectId/issues/:issueId", {
-    schema: {
-      operationId: "resolveIssue",
-      tags: ["Projects"],
-      params: T.Object({
-        projectId: T.String(),
-        issueId: T.String(),
-      }),
-      response: {
-        200: MessageSchema,
-      },
-    },
-    handler: (request, reply) => {
-      const { projectId, issueId } = request.params;
-
-      IssueService.resolveIssue({ userId: request.user.id, projectId, issueId });
 
       reply.status(200).send({
         msg: "OK",

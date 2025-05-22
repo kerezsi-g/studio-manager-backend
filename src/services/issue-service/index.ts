@@ -1,12 +1,10 @@
 import { ProjectsService } from "services/projects-service";
-import { CreateIssue, ResolveIssue } from "./queries";
+import * as Queries from "./queries";
 import { Issue } from "schemas/Issue.type";
 
 //Directly exposes the underlying queries, as there is no additional logic yet
 export namespace IssueService {
-  type CreateIssueArgs = Omit<Issue, "issueId" | "createdAt" | "resolvedAt"> & {
-    projectId: string;
-  };
+  type CreateIssueArgs = Omit<Issue, "issueId" | "createdAt" | "resolvedAt">;
 
   export function createIssue({
     userId,
@@ -14,19 +12,25 @@ export namespace IssueService {
     description,
     timestamp = null,
     duration = null,
-    assetId,
+    fileId,
   }: CreateIssueArgs) {
     ProjectsService.validateAccess({ userId, projectId });
-    const result = CreateIssue({ userId, projectId, description, timestamp, duration, assetId });
+
+    const result = Queries.CreateIssue({
+      userId,
+      projectId,
+      description,
+      timestamp,
+      duration,
+      fileId,
+    });
 
     return result;
   }
 
-  type ResolveIssueArgs = Pick<Issue, "userId" | "issueId"> & { projectId: string };
+  type ResolveIssueArgs = Pick<Issue, "userId" | "issueId">;
 
-  export function resolveIssue({ userId, projectId, issueId }: ResolveIssueArgs) {
-    ProjectsService.validateAccess({ userId, projectId });
-
-    ResolveIssue({ userId, projectId, issueId });
+  export function resolveIssue({ userId, issueId }: ResolveIssueArgs) {
+    Queries.ResolveIssue({ userId, issueId });
   }
 }

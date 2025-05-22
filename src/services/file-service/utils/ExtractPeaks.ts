@@ -1,6 +1,3 @@
-import { spawn } from "child_process";
-import { AudioPeaks } from "types/peaks";
-
 import config from "config";
 
 const { bits, samplesPerPeak } = config.audioPeaks;
@@ -17,13 +14,8 @@ interface AUDIOWAVEFORM_OUTPUT {
   channels: number;
 }
 
-interface GenPeaksParams {
-  bits?: number;
-  chunkSize?: number;
-}
-
 export async function extractPeaks(file: Bun.BunFile): Promise<Bun.BunFile> {
-  const outputFile = Bun.file("temp/" + file.name + "_peaks.json");
+  const outputFile = Bun.file(file.name + "_peaks.json");
 
   const audiowaveformArgs = [
     // Nested array format purely for readability

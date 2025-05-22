@@ -1,5 +1,5 @@
 import { Type as T, Static } from "utils/typebox-openapi";
-import { AssetTag } from "./AssetTag.type";
+import { AssetTagSchema, AssetTypeSchema } from "./enums";
 
 const $id = "ProjectAsset";
 
@@ -8,12 +8,12 @@ const $id = "ProjectAsset";
  */
 export const ProjectAsset = T.Object(
   {
-    assetId: T.String(),
+    projectId: T.String(),
+    fileId: T.String(),
+    assetType: T.SchemaRef(AssetTypeSchema),
     assetName: T.String(),
-    tag: T.SchemaRef(AssetTag),
-    addedAt: T.Integer(),
+    tag: T.Nullable(T.SchemaRef(AssetTagSchema)),
     uploadedAt: T.Integer(),
-    createdAt: T.Integer(),
     contentType: T.String(),
     size: T.Integer(),
   },

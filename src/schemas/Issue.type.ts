@@ -3,9 +3,10 @@ import { Type as T, Static } from "utils/typebox-openapi";
 const $id = "Issue";
 
 export const Issue = T.Object(
-  {
+  {	
     issueId: T.String(),
-    assetId: T.String(),
+	projectId: T.String(),
+    fileId: T.String(),
     userId: T.String(),
     description: T.String(),
     timestamp: T.Nullable(T.Number()),

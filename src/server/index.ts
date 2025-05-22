@@ -4,6 +4,7 @@ import Fastify from "fastify";
 import fastifyCookie from "@fastify/cookie";
 import fastifyJwt from "@fastify/jwt";
 import fastifyCompress from "@fastify/compress";
+import fastifyMultipart from "@fastify/multipart";
 import { requestLogger, Logger } from "logger";
 
 import { RouteDefinitions } from "../routes";
@@ -44,6 +45,12 @@ server.register(fastifyJwt, {
   cookie: {
     cookieName: "jwt",
     signed: false,
+  },
+});
+
+server.register(fastifyMultipart, {
+  limits: {
+    fileSize: 4 * 1000 * 1000000,
   },
 });
 

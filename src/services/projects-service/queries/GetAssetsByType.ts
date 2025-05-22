@@ -3,6 +3,7 @@ import { AssetTag, AssetType, ProjectAsset } from "schemas";
 
 type QueryParams = {
   projectId: string;
+  assetType: AssetType;
 };
 
 type QueryResult = {
@@ -26,17 +27,25 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	, 	uploaded_at		AS "uploadedAt"
 	, 	content_type	AS "contentType"
 	, 	size			AS "size"
-	FROM
+	FROM		
 		v_assets
 	WHERE
 		project_id = @projectId
+	AND
+		asset_type = @assetType
 	ORDER BY
 		uploaded_at DESC
 `);
 
-export function GetAssets(projectId: string): ProjectAsset[] {
+type Args = {
+  projectId: string;
+  assetType: AssetType;
+};
+
+export function GetAssetsByType({ projectId, assetType }: Args): ProjectAsset[] {
   const bindParams: QueryParams = {
     projectId,
+    assetType,
   };
 
   const result = sql.all(bindParams);

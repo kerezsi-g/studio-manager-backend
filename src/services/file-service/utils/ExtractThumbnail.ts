@@ -1,3 +1,7 @@
+import config from "config";
+
+const LIB_PATH = config.libs.ffmpeg;
+
 export async function extractThumbnail(file: Bun.BunFile): Promise<Bun.BunFile> {
   if (!file.name) {
     throw new Error("Input file name is missing.");
@@ -9,7 +13,7 @@ export async function extractThumbnail(file: Bun.BunFile): Promise<Bun.BunFile> 
 
   //   console.log("Running ffmpeg with commands:", commands);
 
-  const ffmpegProcess = Bun.spawn(["ffmpeg", ...commands], {});
+  const ffmpegProcess = Bun.spawn([LIB_PATH, ...commands], {});
 
   await ffmpegProcess.exited;
 

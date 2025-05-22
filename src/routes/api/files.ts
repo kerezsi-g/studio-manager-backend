@@ -10,22 +10,40 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
 
   instance.addSchema(AudioPeaks);
 
-  instance.get("/files/:sha256", {
+  instance.put("/files", {
+    schema: {
+      hide: true,
+    },
+    handler: async (request, reply) => {
+      const data = await request.file();
+
+      if (!data) {
+        return reply.status(400).send({ msg: "File not found" });
+      }
+
+      const { file, filename } = data;
+
+      const result = await FileService.handleReceiveFile(file, filename);
+
+      return reply.status(200).send(result);
+    },
+  });
+
+  instance.get("/files/:fileId", {
     schema: {
       hide: true,
       operationId: "getResource",
       tags: ["Files"],
       querystring: T.Object({
-        preview: T.Optional(T.Boolean()),
         download: T.Optional(T.Boolean()),
       }),
       params: T.Object({
-        sha256: T.String(),
+        fileId: T.String(),
       }),
     },
     handler: async (request, reply) => {
-      const { sha256 } = request.params;
-      const { preview, download } = request.query;
+      const { fileId } = request.params;
+      const { download } = request.query;
 
       /**
        * ! Temporary solution until Bun supports presigning with custom headers
@@ -34,17 +52,19 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
        * @see https://github.com/nikeee/lean-s3/issues/5
        */
       if (download) {
-        const fileMeta = await FileService.getFileMetadata(sha256);
-        const stream = await FileService.getReadStream(sha256);
+        const stream = await FileService.getReadStream(fileId);
+
+        const fileMeta = await FileService.getFileById(fileId);
 
         reply.type(fileMeta.contentType);
+
         reply.header("content-disposition", `attachment; filename="${fileMeta.fileName}"`);
         reply.send(stream);
 
         return reply;
       }
 
-      const url = await FileService.getDownloadUrl(request.user.id, sha256, preview);
+      const url = await FileService.getDownloadUrl(fileId);
 
       reply.redirect(url, 302);
 
@@ -52,71 +72,26 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     },
   });
 
-  /**
-   * ! Temporary solution to load file size from S3 into local db
-   */
-  instance.patch("/files/:sha256", {
-    config: {
-      adminOnly: true,
-    },
+  instance.get("/files/:fileId/:suffix", {
     schema: {
-      tags: ["Files"],
-      operationId: "validateFile",
+      hide: true,
       params: T.Object({
-        sha256: T.String(),
+        fileId: T.String(),
+        suffix: T.String(),
       }),
-      response: {
-        200: T.Object({
-          msg: T.String(),
-        }),
-      },
     },
     handler: async (request, reply) => {
-      const { sha256 } = request.params;
+      const { fileId, suffix } = request.params;
 
-      await FileService.validate(sha256);
+      const url = await FileService.getDownloadUrl(fileId, suffix);
 
-      return reply.status(200).send({ msg: "File is valid" });
+      reply.redirect(url, 302);
+
+      return reply;
     },
   });
 
-  instance.put("/files/:sha256", {
-    config: {
-      adminOnly: true,
-    },
-    schema: {
-      tags: ["Files"],
-      operationId: "createUploadUrl",
-      params: T.Object({
-        sha256: T.String(),
-      }),
-      querystring: T.Object({
-        fileName: T.String(),
-        contentType: T.String(),
-        createdAt: T.Integer(),
-      }),
-      response: {
-        200: T.Object({
-          uploadUrl: T.String(),
-        }),
-      },
-    },
-    handler: async function (request, reply) {
-      const { sha256 } = request.params;
-      const { fileName, contentType, createdAt } = request.query;
-
-      const uploadUrl = await FileService.getUploadUrl({
-        sha256,
-        fileName,
-        contentType,
-        createdAt,
-      });
-
-      return reply.status(200).send({ uploadUrl });
-    },
-  });
-
-  instance.delete("/files/:sha256", {
+  instance.delete("/files/:fileId", {
     config: {
       adminOnly: true,
     },
@@ -124,7 +99,7 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
       operationId: "markForDeletion",
       tags: ["Files"],
       params: T.Object({
-        sha256: T.String(),
+        fileId: T.String(),
       }),
       response: {
         200: T.Object({
@@ -134,25 +109,6 @@ const plugin: FastifyPluginAsyncTypebox = async function (instance) {
     },
     handler: (request, reply) => {
       throw new Error("Not implemented");
-    },
-  });
-
-  instance.get("/files/:sha256/metadata", {
-    schema: {
-      operationId: "getMetadata",
-      tags: ["Files"],
-      params: T.Object({
-        sha256: T.String(),
-      }),
-      response: {
-        200: T.Object({}),
-      },
-    },
-    preHandler: (request, reply) => {
-      FileService.authorize(request.user.id, request.params.sha256);
-    },
-    handler: (request, reply) => {
-      const metadata = FileService.getFileMetadata(request.params.sha256);
     },
   });
 };

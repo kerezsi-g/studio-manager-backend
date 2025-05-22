@@ -4,9 +4,7 @@ import { Project } from "schemas/Project.type";
 import { UserData } from "schemas/UserData.type";
 
 import * as Queries from "./queries";
-import { FileGenerationService } from "services/file-generation-service";
-import { FileService } from "services/file-service";
-import { ProjectAssetSelector } from "./queries/AddAssetToProject";
+import { AssetTag, AssetType } from "schemas";
 
 export namespace ProjectsService {
   interface ProjectMember {
@@ -55,7 +53,7 @@ export namespace ProjectsService {
       throw new Error("Project not found");
     }
 
-    const assets = Queries.GetProjectAssets(projectId);
+    const assets = Queries.GetAssets(projectId);
     const issues = Queries.GetProjectIssues(projectId);
 
     return {
@@ -90,57 +88,45 @@ export namespace ProjectsService {
     // Nothing else to do here
   }
 
-  interface LinkFileToProjectArgs {
+  interface AssetId {
     projectId: string;
-    sha256: string;
-    tag: string;
-    path?: string;
-    fileName?: string;
+    fileId: string;
+    assetType: AssetType;
   }
 
-  export function getProjectFiles(projectId: string): ProjectAsset[] {
-    const results = Queries.GetProjectAssets(projectId);
+  export function getAssets(projectId: string): ProjectAsset[] {
+    const results = Queries.GetAssets(projectId);
 
     return results;
   }
 
-  export function addAssetToProject({ projectId, assetId, tag }: ProjectAssetSelector) {
-    const result = Queries.AddAssetToProject({ projectId, assetId, tag });
+  export function createAsset(asset: AssetId) {
+    if (asset.assetType == AssetType.BackgroundImage || asset.assetType == AssetType.Thumbnail) {
+      const assetsToDelete = getAssetsByType(asset.projectId, asset.assetType);
 
-    if (!result) {
-      throw new Error("Failed to add asset to project");
+      for (const asset of assetsToDelete) {
+        deleteAsset(asset);
+      }
     }
 
-    return result;
+    return Queries.CreateAsset(asset);
   }
 
-  export function removeAssetFromProject({ projectId, assetId, tag }: ProjectAssetSelector) {
-    const result = Queries.RemoveAssetFromProject({ projectId, assetId, tag });
+  export function deleteAsset(assetId: AssetId) {
+    Queries.DeleteAsset(assetId);
+  }
 
-    if (!result) {
-      throw new Error("Failed to remove asset from project");
+  export function getAssetsByType(projectId: string, assetType: AssetType): ProjectAsset[] {
+    const results = Queries.GetAssetsByType({ projectId, assetType });
+
+    return results;
+  }
+
+  export function tagAsset({ projectId, fileId, assetType }: AssetId, tag: AssetTag) {
+    if (assetType != AssetType.Primary) {
+      throw new Error("Only primary assets can be tagged");
     }
 
-    return result;
-  }
-
-  /** @deprecated */
-  export function linkFileToProject({
-    projectId,
-    sha256,
-    tag,
-    path,
-    fileName,
-  }: LinkFileToProjectArgs) {
-    throw "Not implemented";
-  }
-
-  /** @deprecated */
-  export function unlinkFileFromProject({
-    projectId,
-    sha256,
-    tag,
-  }: Omit<LinkFileToProjectArgs, "path" | "fileName">) {    
-    Queries.UnlinkFileFromProject({ projectId, sha256, tag });
+    Queries.SetAssetTag({ projectId, fileId, tag });
   }
 }

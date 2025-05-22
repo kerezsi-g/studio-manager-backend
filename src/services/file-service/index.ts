@@ -1,23 +1,35 @@
-import { S3Client } from "bun";
-import * as Queries from "./queries";
-import { Logger } from "logger";
+import { BunFile, S3Client } from "bun";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 
 import config from "config";
+import { Logger } from "logger";
+
+import * as Queries from "./queries";
+import * as Utils from "./utils";
+import path from "node:path";
+import { createWriteStream } from "node:fs";
+import { generateUuid } from "utils/generate-uuid";
+import { generateHash } from "utils/generate-hash";
 
 const logger = new Logger("FileService");
 
 const s3Client = new S3Client(config.s3);
 
-/**
- * @deprecated
- */
 export namespace FileService {
-  interface FileMeta {
+  export interface PrimaryFileMdt {
+    fileId: string;
     sha256: string;
     fileName: string;
     contentType: string;
-    // size: number;
-    createdAt: number;
+    uploadedAt: number;
+  }
+
+  export interface GeneratedFileMdt {
+    fileId: string;
+    suffix: string;
+    contentType: string;
+    uploadedAt: number;
   }
 
   export function authorize(userId: string, fileId: string) {
@@ -26,24 +38,103 @@ export namespace FileService {
      */
   }
 
-  function genHash(buf: ArrayBuffer) {
-    const hasher = new Bun.CryptoHasher("sha256");
+  export async function handleReceiveFile(file: Readable, originalFileName: string) {
+    const fileId = generateUuid();
 
-    hasher.update(buf);
+    const fullPath = path.resolve("temp", originalFileName);
 
-    const hash = hasher.digest("hex");
+    const writeStream = createWriteStream(fullPath);
 
-    return hash;
+    await pipeline(file, writeStream);
+
+    const tempFile = Bun.file(fullPath);
+
+    const sha256 = await generateHash(tempFile);
+
+    const existingFile = await Queries.GetFileByHash({ sha256 });
+
+    if (existingFile) {
+      await tempFile.unlink();
+      return existingFile;
+    }
+
+    const generatedFiles = await generateFiles(tempFile);
+
+    const primaryFileMdt = await writePrimaryMetadata(fileId, sha256, tempFile);
+
+    for await (const generatedFile of generatedFiles) {
+      await writeGeneratedMetadata(fileId, generatedFile.suffix, generatedFile.file);
+
+      await uploadFile(generatedFile.file, `${fileId}-${generatedFile.suffix}`);
+      await generatedFile.file.unlink();
+    }
+
+    await uploadFile(tempFile, fileId);
+
+    await tempFile.unlink();
+
+    return primaryFileMdt;
   }
 
-  export async function getDownloadUrl(userId: string, sha256: string, preview: boolean = false) {
-    authorize(userId, sha256);
+  async function writePrimaryMetadata(fileId: string, hash: string, file: Bun.BunFile) {
+    const stat = await file.stat();
 
-    const file = await getFileMetadata(sha256);
+    const name = path.basename(file.name!);
 
-    const s3fileName = preview ? `previews/${sha256}` : file.sha256;
+    return await Queries.WritePrimaryMetadata({
+      fileId,
+      sha256: hash,
+      fileName: name,
+      contentType: file.type,
+      size: stat.size,
+    });
+  }
 
-    const s3file = s3Client.file(s3fileName);
+  async function writeGeneratedMetadata(fileId: string, suffix: string, file: Bun.BunFile) {
+    const stat = await file.stat();
+
+    return await Queries.WriteGeneratedMetadata({
+      fileId,
+      suffix,
+      contentType: file.type,
+      size: stat.size,
+    });
+  }
+
+  async function uploadFile(file: Bun.BunFile, storageKey: string) {
+    const s3file = s3Client.file(storageKey);
+
+    await s3file.write(file, {
+      type: file.type,
+    });
+  }
+
+  function getS3File(fileId: string, suffix?: string) {
+    const storageKey = suffix ? `${fileId}-${suffix}` : fileId;
+
+    const s3file = s3Client.file(storageKey);
+
+    const exists = s3file.exists();
+
+    if (!exists) {
+      throw new Error("File not found");
+    }
+
+    return s3file;
+  }
+
+  export function getFileById(fileId: string) {
+    return Queries.GetFileById({ fileId });
+  }
+
+  export async function getDownloadUrl(fileId: string, suffix?: string) {
+    const s3file = getS3File(fileId, suffix);
+
+    const exists = await s3file.exists();
+
+    if (!exists) {
+      throw new Error("File not found");
+    }
 
     const publicUrl = s3file.presign({
       expiresIn: 3600,
@@ -53,122 +144,55 @@ export namespace FileService {
     return publicUrl;
   }
 
-  /**
-   * @deprecated
-   */
-  export async function getUploadUrl({ sha256, fileName, contentType, createdAt }: FileMeta) {
-    const entry = Queries.CreateFileEntry({
-      sha256,
-      fileName,
-      contentType,
-      createdAt,
-    });
+  export async function getReadStream(fileId: string, suffix?: string) {
+    const s3file = getS3File(fileId, suffix);
 
-    const s3file = s3Client.file(sha256);
-
-    const publicUrl = s3file.presign({
-      expiresIn: 3600,
-      method: "PUT",
-    });
-
-    return publicUrl;
+    return s3file.stream();
   }
 
-  /**
-   * TODO: Authorization
-   */
-  export function getFileMetadata(sha256: string) {
-    const entry = Queries.GetFileEntry({ sha256 });
+  async function generateFiles(inputFile: BunFile): Promise<{ file: BunFile; suffix: string }[]> {
+    const [type] = inputFile.type.split("/");
 
-    if (!entry) {
-      throw new Error("File not found");
+    if (type == "audio") {
+      return [
+        {
+          file: await Utils.extractPeaks(inputFile),
+          suffix: "peaks",
+        },
+      ];
     }
 
-    return entry;
-  }
-
-  /**
-   * @deprecated
-   */
-  export async function uploadMedia(file: Bun.BunFile, fileName: string, contentType: string) {
-    await s3Client.file(fileName).write(file, {
-      type: contentType,
-    });
-  }
-
-  /**
-   * @deprecated
-   */
-  export async function getTemporaryLocalFile(sha256: string) {
-    const s3file = s3Client.file(sha256);
-
-    const file = Bun.file("temp/" + sha256);
-    const sink = file.writer();
-
-    const readStream = s3file.stream();
-    const reader = readStream.getReader();
-
-    logger.info(`Writing temp file ${sha256}...`);
-
-    while (true) {
-      const { done, value } = await reader.read();
-
-      if (done) {
-        await sink.end();
-        break;
-      }
-
-      await sink.write(value);
+    if (type == "image") {
+      return [
+        {
+          file: await Utils.resizeImage(inputFile),
+          suffix: "thumbnail",
+        },
+      ];
     }
 
-    logger.info(`Temp file ${sha256} written`);
+    if (type == "video") {
+      const extractedFrame = await Utils.extractThumbnail(inputFile);
+      const extractedAudio = await Utils.extractAudio(inputFile);
 
-    return file;
-  }
+      const thumbnail = await Utils.resizeImage(extractedFrame);
+      const peaks = await Utils.extractPeaks(extractedAudio);
 
-  /**
-   * @deprecated
-   */
-  export async function getReadStream(sha256: string) {
-    const file = s3Client.file(sha256);
+      await extractedFrame.unlink();
+      await extractedAudio.unlink();
 
-    const exists = await file.exists();
-
-    if (!exists) {
-      throw new Error("File not found");
+      return [
+        {
+          file: thumbnail,
+          suffix: "thumbnail",
+        },
+        {
+          file: peaks,
+          suffix: "peaks",
+        },
+      ];
     }
 
-    return file.stream();
-  }
-
-  /**
-   * @deprecated
-   * Updates the file size in the database
-   */
-  export async function validate(sha256: string) {
-    const entry = Queries.GetFileEntry({ sha256 });
-
-    if (!entry) {
-      throw new Error("File not found");
-    }
-
-    const stat = await s3Client.file(sha256).stat();
-
-    console.log(stat);
-
-    Queries.UpdateFileEntry({ sha256, size: stat.size });
-  }
-
-  /**
-   * @deprecated
-   */
-  export async function checkIntegrity() {
-    const files = await s3Client.list();
-
-    if (!files.contents) {
-      return;
-    }
-
-    throw "Not implemented";
+    throw new Error(`Unsupported file type "${inputFile.type}"`);
   }
 }

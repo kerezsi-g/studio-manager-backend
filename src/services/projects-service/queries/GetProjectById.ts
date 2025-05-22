@@ -11,8 +11,6 @@ type QueryResult = {
   projectType: ProjectType;
   subject: string;
   createdAt: number;
-  avatar: string | null;
-  wallpaper: string | null;
 };
 
 const sql = db.query<QueryResult, QueryParams>(/*sql*/ `

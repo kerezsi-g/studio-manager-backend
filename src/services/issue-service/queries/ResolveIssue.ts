@@ -3,7 +3,6 @@ import { db } from "db";
 type QueryParams = {
   userId: string;
   issueId: string;
-  projectId: string;
   resolvedAt: number;
 };
 
@@ -17,28 +16,24 @@ const sql = db.query<QueryResult, QueryParams>(/*sql*/ `
 	SET
 		resolved_at = @resolvedAt
 	WHERE
-		issue_id = @issueId
-	AND
-		project_id = @projectId
+		issue_id = @issueId	
 	AND
 		user_id = @userId
 `);
 
 interface Args {
   userId: string;
-  projectId: string;
   issueId: string;
 }
 
-export function ResolveIssue({ userId, projectId, issueId }: Args) {
+export function ResolveIssue({ userId, issueId }: Args) {
   const bindParams: QueryParams = {
     issueId,
     userId,
-    projectId,
     resolvedAt: Date.now(),
   };
 
-  const result = sql.get(bindParams);
+  const result = sql.run(bindParams);
 
   return result;
 }
